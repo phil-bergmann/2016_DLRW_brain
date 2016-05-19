@@ -14,10 +14,12 @@ TODO: Write docstring
 
 from __future__ import print_function
 
-import progressbar
 
 import os
 import sys
+import zipfile as z
+
+import scipy.io as sio
 
 def load_way_eeg_gal(shared = True):
     """Loads the WAY-EEG-GAL dataset
@@ -41,21 +43,22 @@ def load_way_eeg_gal(shared = True):
             ('P2.zip' , 'https://ndownloader.figshare.com/files/3229304'),
             ('P3.zip' , 'https://ndownloader.figshare.com/files/3229307'),
             ('P4.zip' , 'https://ndownloader.figshare.com/files/3229310'),
-            ('P5.zip' , 'https://ndownloader.figshare.com/files/3229313'),
-            ('P6.zip' , 'https://ndownloader.figshare.com/files/3209486'),
-            ('P7.zip' , 'https://ndownloader.figshare.com/files/3209501'),
-            ('P8.zip' , 'https://ndownloader.figshare.com/files/3209504'),
-            ('P9.zip' , 'https://ndownloader.figshare.com/files/3209495'),
-            ('P10.zip', 'https://ndownloader.figshare.com/files/3209492'),
-            ('P11.zip', 'https://ndownloader.figshare.com/files/3209498'),
-            ('P12.zip', 'https://ndownloader.figshare.com/files/3209489') 
+            ('P5.zip' , 'https://ndownloader.figshare.com/files/3229313')#,
+            # ('P6.zip' , 'https://ndownloader.figshare.com/files/3209486'),
+            # ('P7.zip' , 'https://ndownloader.figshare.com/files/3209501'),
+            # ('P8.zip' , 'https://ndownloader.figshare.com/files/3209504'),
+            # ('P9.zip' , 'https://ndownloader.figshare.com/files/3209495'),
+            # ('P10.zip', 'https://ndownloader.figshare.com/files/3209492'),
+            # ('P11.zip', 'https://ndownloader.figshare.com/files/3209498'),
+            # ('P12.zip', 'https://ndownloader.figshare.com/files/3209489') 
             ]
 
     for [data_file, url] in origins:
         new_path = os.path.join(os.path.split(__file__)[0], data_file)
 
-        if(not os.path.isfile(data_file)): 
+        if(not os.path.isfile(new_path)): 
             from six.moves import urllib
+            import progressbar
 
             pbar = progressbar.ProgressBar().start() 
             def rephook(blocks_transfered, block_size, total_size):
@@ -63,10 +66,21 @@ def load_way_eeg_gal(shared = True):
                 pbar.update(blocks_transfered)
                 # print('%d bytes / %d bytes, blocks %d, block size %d' % (blocks_transfered * block_size, total_size, blocks_transfered, block_size))
 
-            print('Downloading %s from %s ...' % (data_file, url))
-            urllib.request.urlretrieve(url, data_file, reporthook = rephook)
+            print('Downloading %s from %s saving to %s ...' % (data_file, url, new_path))
+            urllib.request.urlretrieve(url, new_path, reporthook = rephook)
 
             pbar.finish()
+
+        with z.ZipFile(new_path, 'r') as data_zip:
+            # print(data_zip.namelist())
+            for fname in data_zip.namelist():
+                fpath = os.path.join(os.path.split(__file__)[0], fname)
+
+                if(not os.path.isfile(fpath)):
+                    print('Extracting %s to ./data/ ...' % fname)
+                    data_zip.extract(fname, os.path.split(__file__)[0])
+            # print(sio.loadmat('HS_%s_S1.mat' % data_file[0:2]))
+
 
 if __name__ == "__main__":
     load_way_eeg_gal()
