@@ -23,6 +23,10 @@ task :lint do
   puts `pylint data`
 end
 
+task :test do
+  puts `nosetests`
+end
+
 namespace :doc do
   task all: [:compile]
   task :compile do
