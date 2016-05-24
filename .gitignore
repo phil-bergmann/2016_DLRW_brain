@@ -8,6 +8,7 @@ __pycache__/
 
 # Dataset
 *.zip
+*.mat
 
 # Distribution / packaging
 .Python
