@@ -28,7 +28,7 @@ task :test do
 end
 
 namespace :doc do
-  task all: [:compile]
+  task all: [:compile, :open]
   task :compile do
     puts "Compiling report for #{PROJECT_NAME}"
     `pdflatex -output-directory=doc -halt-on-error -jobname=#{PROJECT_NAME} doc/main.tex`
@@ -43,6 +43,11 @@ namespace :doc do
   task :pages do
     puts "Pages for Project #{PROJECT_NAME}:"
     puts `pdfinfo doc/#{PROJECT_NAME}.pdf|grep Pages`
+  end
+
+  task :open do
+    puts "opening #{PROJECT_NAME}"
+    `open doc/#{PROJECT_NAME}.pdf`
   end
 end
 
