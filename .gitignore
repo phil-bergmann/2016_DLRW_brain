@@ -224,3 +224,5 @@ pythontex-files-*/
 
 # Latexian
 TSWLatexianTemp*
+
+.ropeproject
