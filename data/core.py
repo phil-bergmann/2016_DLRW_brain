@@ -88,6 +88,3 @@ def load_way_eeg_gal(shared=True):
                     )
                     data_zip.extract(fname, os.path.split(__file__)[0])
             # print(sio.loadmat('HS_%s_S1.mat' % data_file[0:2]))
-
-if __name__ == "__main__":
-    load_way_eeg_gal()
