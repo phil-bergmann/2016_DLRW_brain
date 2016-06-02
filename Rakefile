@@ -19,10 +19,12 @@ task :init do
   puts `pip install -r requirements.txt`
 end
 
+desc 'run pylint'
 task :lint do
-  puts `pylint data`
+  puts `pylint brain`
 end
 
+desc 'run tests'
 task :test do
   puts `nosetests`
 end
