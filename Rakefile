@@ -30,11 +30,19 @@ task :test do
 end
 
 namespace :doc do
-  task all: [:compile, :open]
-  task :compile do
-    puts "Compiling report for #{PROJECT_NAME}"
-    `pdflatex -output-directory=doc -halt-on-error -jobname=#{PROJECT_NAME} doc/main.tex`
+  namespace :compile do
+    task :once do
+    `latexmk -gg -d -cd -pv -pdf -halt-on-error -jobname=#{PROJECT_NAME} doc/main.tex`
+    end
+    
+    desc 'countinuusly run latexmk'
+    task :continuous do
+    `latexmk -gg -d -cd -pvc -pdf -halt-on-error -jobname=#{PROJECT_NAME} doc/main.tex`
+    end
   end
+
+  desc 'compile the report using latexmk'
+  task compile: 'compile:once'
 
   desc "Counts words of main document"
   task :count do
@@ -51,6 +59,8 @@ namespace :doc do
     puts "opening #{PROJECT_NAME}"
     `open doc/#{PROJECT_NAME}.pdf`
   end
+
+  task all: [:count, :pages, :compile]
 end
 
 task doc: 'doc:all'
