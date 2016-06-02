@@ -1,12 +1,12 @@
 require 'rake/clean'
 
 PROJECT_NAME = '2016-DLRW-brain'
-DATASET = FileList[ 'data/**/*.mat, data/**/*.zip' ]
+DATASET = FileList[ '*/**/*.mat', '*/**/*.zip' ]
 SOURCE_FILES = FileList['*/**/*.py']
 DOCUMENTATION = FileList['*/**/*.tex']
 
-CLEAN << DATASET
 CLEAN << FileList['doc/*.{aux,log,out}']
+CLEAN << DATASET
 
 desc "Grep out the TODO's"
 task :todo do
