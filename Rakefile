@@ -49,6 +49,11 @@ namespace :doc do
     puts "#{`detex doc/main.tex | wc -w`.strip} words in project report"
   end
 
+  desc 'Reads the report out loud'
+  task :read do
+    sh "detex doc/main.tex | (say --progress || espeak --stdin)"
+  end
+
   desc "Count PDF Pages"
   task :pages do
     puts "Pages for Project #{PROJECT_NAME}:"
