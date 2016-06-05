@@ -3,9 +3,11 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import numpy as np
+import static as st
 
 def visualize_hs(data_dict, series_id, participant_id):
     plt.figure(figsize=(25, 41))
+    plt.ioff()
 
     for win in data_dict:
         name = win[0]
@@ -30,16 +32,18 @@ def visualize_hs(data_dict, series_id, participant_id):
     plt.xlabel('time')
     plt.tight_layout()
     plt.suptitle('EEG: participant: %s series: %s sensor: %s' % (series_id, sensor_id, participant_id), y=0.0, fontsize=24)
-    plt.savefig('P'+str(participant_id)+'_S'+str(series_id)+'_'+str(sensor_id)+'_'+'.png')
+    plt.savefig(st.vis_path_images+'P'+str(participant_id)+'_S'+str(series_id)+'_'+str(sensor_id)+'_'+'.png')
     plt.close()
 
 def visualize_ws(data_eeg, names_eeg, series_id, trial, participant_id, led_on, led_off):
     plt.figure(figsize=(25, 41))
     plt.xlim((0, data_eeg.shape[0]))
+    plt.ioff()
 
     n_samples = len(data_eeg[0])
     n_sensors = len(names_eeg)
     for sensor_id in range(n_sensors):
+        # print '  sensor: %s ' % sensor_id
 
         ax = plt.subplot2grid((n_sensors, 1), (sensor_id, 0))
         measurement = data_eeg[sensor_id]
@@ -59,10 +63,11 @@ def visualize_ws(data_eeg, names_eeg, series_id, trial, participant_id, led_on, 
             r.set_alpha(0.1)
             ax.add_artist(r)
 
+    print 'participant: %s series: %s trial: %s' % (participant_id, series_id, trial)
+
     # plt.xlabel('time')
     plt.tight_layout()
-    plt.suptitle('EEG: participant: %s series: %s sensor: %s' % (series_id, sensor_id, participant_id), y=0.0,
+    plt.suptitle('EEG: participant: %s series: %s trial: %s' % (participant_id, series_id, trial), y=0.0,
                  fontsize=20)
-    plt.savefig('P' + str(participant_id) + '_S' + str(series_id)+ '_t'+str(trial)+ '.png')
+    plt.savefig(st.vis_path_images+'P' + str(participant_id) + '_S' + str(series_id)+ '_t'+str(trial)+ '.png')
     plt.close()
-    print ''

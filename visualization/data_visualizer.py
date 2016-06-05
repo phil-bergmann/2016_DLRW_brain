@@ -2,6 +2,7 @@ import sys
 import static as st
 import zipfile
 import re
+import math
 import glob
 from eeg_plotter import *
 from matlab_utils import extract_mat, _check_keys, _todict
@@ -9,12 +10,22 @@ from matlab_utils import extract_mat, _check_keys, _todict
 HS_file_filter_regex = r'HS_P[0-9]_ST.mat'
 WS_file_filter_regex = r'WS_P[0-9]_S[0-9].mat'
 
-def get_time_series_index(series_times_list, event):
-    series_idx, = np.where(series_times_list == event)
-    while not series_idx and event > 0:
-        series_idx, = np.where(series_times_list == event)
-        event -= 0.001
+def time_to_series_index(series_times_list, event_time):
+    series_idx, = np.where(series_times_list == event_time)
+    if series_idx:
+        return series_idx
+
+    # cut off decimal precision, in case of mismatch
+    # of event_time in ws.win.eeg_t time lookup table
+    time_str = str(event_time)[:-1]
+    while not series_idx and event_time > 0:
+        f = float(time_str)
+        series_idx, = np.where(series_times_list == f)
+        time_str = str(time_str)[:-1]
+
+    # print '%s -> %s' % (event_time, series_idx)
     return series_idx
+
 
 def main():
     archive_files = glob.glob('../'+st.p_file_path)
@@ -32,20 +43,28 @@ def main():
                 mat = extract_mat(f_zip, f_mat, relative_path='../')
                 ws = mat.get('ws')
                 participant_id = ws.get('participant')
+                # print 'participant: %s ' % participant_id
                 series_id = ws.get('series')
+                # print 'series: %s ' % series_id
                 names = ws.get('names')
                 names_eeg = names.get('eeg')
-                trial = 0
-                windows = ws.get('win')[trial]
-                # for trial_id, win in enumerate(windows):
-                win = _todict(windows)
-                times_eeg = win.get('eeg_t')
-                data_eeg = win.get('eeg').transpose()
-                ev_led_on = win.get('LEDon')
-                ev_led_off = win.get('LEDoff')
-                led_on_idx = get_time_series_index(times_eeg, ev_led_on)
-                led_off_idx = get_time_series_index(times_eeg, ev_led_off)
-                visualize_ws(data_eeg, names_eeg, series_id, participant_id, trial, led_on_idx, led_off_idx)
+
+                windows = ws.get('win')
+                for trial, win in enumerate(windows):
+                # trial = 5
+                # win = ws.get('win')[trial]
+                    win = _todict(win)
+
+                    times_eeg = win.get('eeg_t')
+                    data_eeg = win.get('eeg').transpose()
+
+                    # print ' series: %s trial: %s' % (series_id, trial)
+                    led_on_time = win.get('LEDon')
+                    led_off_time = win.get('LEDoff')
+                    led_on_idx = time_to_series_index(times_eeg, led_on_time)
+                    led_off_idx = time_to_series_index(times_eeg, led_off_time)
+
+                    visualize_ws(data_eeg, names_eeg, series_id, participant_id, trial, led_on_idx, led_off_idx)
 
             # if re.search(HS_file_filter_regex, repr(f_mat)):
             #     mat = extract_mat(f_zip, f_mat, relative_path='../')
