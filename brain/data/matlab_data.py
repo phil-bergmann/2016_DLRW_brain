@@ -2,15 +2,15 @@ import sys
 import zipfile
 import re
 import glob
-from matlab_utils import extract_mat
-import static
+from util import extract_mat
+import globals as st
 
 file_filter_regex = r'HS_P[0-9]_ST.mat'
 # file_filter_regex = r'WS_P[0-9]_S[0-9].mat'
 
 def main():
-    archive_files = glob.glob(static.p_file_regex)
-    assert len(archive_files) == static.n_p_files, ('Number of P archives found: %i expected %i!' % (len(archive_files), static.n_p_files))
+    archive_files = glob.glob(st.P_FILE_REGEX)
+    assert len(archive_files) == st.N_P_FILES, ('Number of P archives found: %i expected %i!' % (len(archive_files), static.n_p_files))
 
     for archive in archive_files:
         f_zip = zipfile.ZipFile(archive, 'r')

@@ -29,7 +29,7 @@ def visualize_hs(data_dict, series_id, participant_id):
     plt.xlabel('time')
     plt.tight_layout()
     plt.suptitle('EEG: participant: %s series: %s sensor: %s' % (series_id, sensor_id, participant_id), y=0.0, fontsize=24)
-    plt.savefig(st.vis_path_images+'P'+str(participant_id)+'_S'+str(series_id)+'_'+str(sensor_id)+'_'+'.png')
+    plt.savefig(st.IMAGE_PATH+'P'+str(participant_id)+'_S'+str(series_id)+'_'+str(sensor_id)+'_'+'.png')
     plt.close()
 
 def visualize_ws(data_eeg, names_eeg, series_id, trial, participant_id, led_on, led_off):
@@ -66,5 +66,5 @@ def visualize_ws(data_eeg, names_eeg, series_id, trial, participant_id, led_on, 
     plt.tight_layout()
     plt.suptitle('EEG: participant: %s series: %s trial: %s' % (participant_id, series_id, trial), y=0.0,
                  fontsize=20)
-    plt.savefig(st.vis_path_images+'P' + str(participant_id) + '_S' + str(series_id)+ '_t'+str(trial)+ '.png')
+    plt.savefig(st.IMAGE_PATH+'P' + str(participant_id) + '_S' + str(series_id)+ '_t'+str(trial)+ '.png')
     plt.close()

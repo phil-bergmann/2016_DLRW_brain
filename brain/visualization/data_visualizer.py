@@ -4,7 +4,7 @@ import sys
 import glob
 from eeg_plotter import *
 import brain.data.globals as st
-from brain.data.matlab_utils import extract_mat, _todict
+from brain.data.util import extract_mat, _todict
 
 HS_file_filter_regex = r'HS_P[0-9]_ST.mat'
 WS_file_filter_regex = r'WS_P[0-9]_S[0-9].mat'
