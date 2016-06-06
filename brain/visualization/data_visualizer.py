@@ -69,4 +69,3 @@ def main():
 
 if __name__ == "__main__":
     sys.exit(main())
-    # os.system('espeak "Visualization has finished"')
