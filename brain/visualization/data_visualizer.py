@@ -23,7 +23,7 @@ def time_to_series_index(series_times_list, event_time):
 
 
 def main():
-    archive_files = glob.glob('../'+st.p_file_path)
+    archive_files = glob.glob('../'+st.data_path+st.p_file_path)
     assert len(archive_files) == st.n_p_files, ('Number of P archives found %i != %i' % (len(archive_files), st.n_p_files))
 
     for archive in archive_files:
@@ -32,7 +32,7 @@ def main():
 
         for f_mat in mat_file_list:
             if re.search(WS_file_filter_regex, repr(f_mat)):
-                mat = extract_mat(f_zip, f_mat, relative_path='../')
+                mat = extract_mat(f_zip, f_mat, relative_path='../'+st.data_path)
                 ws = mat.get('ws')
                 participant_id = ws.get('participant')
                 series_id = ws.get('series')
