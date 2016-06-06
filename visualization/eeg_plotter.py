@@ -15,8 +15,6 @@ def visualize_hs(data_dict, series_id, participant_id):
 
         n_sensors = len(data)
         for sensor_id in range(n_sensors):
-            # sys.stdout.write('\rplotting eeg: participant: %s series: %s sensor: %i' % (participant_id, series_id, sensor_id))
-            # sys.stdout.flush()
 
             ax = plt.subplot2grid((n_sensors, 1), (sensor_id, 0))
             measurement = data#[:,sensor_id]
@@ -36,14 +34,14 @@ def visualize_hs(data_dict, series_id, participant_id):
     plt.close()
 
 def visualize_ws(data_eeg, names_eeg, series_id, trial, participant_id, led_on, led_off):
+    plt.ioff()
     plt.figure(figsize=(25, 41))
     plt.xlim((0, data_eeg.shape[0]))
-    plt.ioff()
+
 
     n_samples = len(data_eeg[0])
     n_sensors = len(names_eeg)
     for sensor_id in range(n_sensors):
-        # print '  sensor: %s ' % sensor_id
 
         ax = plt.subplot2grid((n_sensors, 1), (sensor_id, 0))
         measurement = data_eeg[sensor_id]
