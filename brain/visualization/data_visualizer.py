@@ -1,4 +1,4 @@
-import static as st
+import brain.data.static as st
 import zipfile
 import re
 import glob

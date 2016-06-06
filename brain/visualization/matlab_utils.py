@@ -1,5 +1,5 @@
 import scipy.io as spio
-import static as st
+import brain.data.static as st
 
 
 def loadnestedmat(filename):
