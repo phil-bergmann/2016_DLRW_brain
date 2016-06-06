@@ -1,9 +1,10 @@
-import brain.data.static as st
 import zipfile
 import re
+import sys
 import glob
 from eeg_plotter import *
-from matlab_utils import extract_mat, _todict
+import brain.data.static as st
+from brain.data.matlab_utils import extract_mat, _todict
 
 HS_file_filter_regex = r'HS_P[0-9]_ST.mat'
 WS_file_filter_regex = r'WS_P[0-9]_S[0-9].mat'
@@ -23,7 +24,7 @@ def time_to_series_index(series_times_list, event_time):
 
 
 def main():
-    archive_files = glob.glob('../'+st.data_path+st.p_file_path)
+    archive_files = glob.glob('../' + st.data_path + st.p_file_regex)
     assert len(archive_files) == st.n_p_files, ('Number of P archives found %i != %i' % (len(archive_files), st.n_p_files))
 
     for archive in archive_files:

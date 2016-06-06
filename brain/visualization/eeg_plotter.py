@@ -1,8 +1,8 @@
-import sys
+import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
-import numpy as np
+from brain.data import static as st
 
 def visualize_hs(data_dict, series_id, participant_id):
     plt.figure(figsize=(25, 41))

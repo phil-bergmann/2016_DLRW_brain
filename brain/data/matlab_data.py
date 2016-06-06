@@ -9,7 +9,7 @@ file_filter_regex = r'HS_P[0-9]_ST.mat'
 # file_filter_regex = r'WS_P[0-9]_S[0-9].mat'
 
 def main():
-    archive_files = glob.glob(static.p_file_path)
+    archive_files = glob.glob(static.p_file_regex)
     assert len(archive_files) == static.n_p_files, ('Number of P archives found: %i expected %i!' % (len(archive_files), static.n_p_files))
 
     for archive in archive_files:
