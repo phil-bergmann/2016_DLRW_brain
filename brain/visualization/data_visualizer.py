@@ -3,7 +3,7 @@ import re
 import sys
 import glob
 from eeg_plotter import *
-import brain.data.static as st
+import brain.data.globals as st
 from brain.data.matlab_utils import extract_mat, _todict
 
 HS_file_filter_regex = r'HS_P[0-9]_ST.mat'
@@ -24,8 +24,8 @@ def time_to_series_index(series_times_list, event_time):
 
 
 def main():
-    archive_files = glob.glob('../' + st.data_path + st.p_file_regex)
-    assert len(archive_files) == st.n_p_files, ('Number of P archives found %i != %i' % (len(archive_files), st.n_p_files))
+    archive_files = glob.glob('../' + st.DATA_PATH + st.P_FILE_REGEX)
+    assert len(archive_files) == st.N_P_FILES, ('Number of P archives found %i != %i' % (len(archive_files), st.N_P_FILES))
 
     for archive in archive_files:
         f_zip = zipfile.ZipFile(archive, 'r')
@@ -33,7 +33,7 @@ def main():
 
         for f_mat in mat_file_list:
             if re.search(WS_file_filter_regex, repr(f_mat)):
-                mat = extract_mat(f_zip, f_mat, relative_path='../'+st.data_path)
+                mat = extract_mat(f_zip, f_mat, relative_path='../'+st.DATA_PATH)
                 ws = mat.get('ws')
                 participant_id = ws.get('participant')
                 series_id = ws.get('series')

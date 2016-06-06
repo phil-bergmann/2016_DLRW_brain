@@ -1,5 +1,5 @@
 import scipy.io as spio
-import static as st
+import globals as st
 
 
 def loadnestedmat(filename):
@@ -37,7 +37,7 @@ def _todict(matobj):
 
 def extract_mat(zf, filename, relative_path=''):
     try:
-        zf.extract(filename, path=relative_path+st.mat_subdir)
-        return loadnestedmat(relative_path+st.mat_subdir+filename)
+        zf.extract(filename, path=relative_path+st.MAT_SUBDIR)
+        return loadnestedmat(relative_path+st.MAT_SUBDIR+filename)
     except KeyError:
         print 'ERROR: Did not find %s in zip file' % filename
