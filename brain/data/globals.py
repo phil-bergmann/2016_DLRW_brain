@@ -1,4 +1,5 @@
 DATA_PATH = 'data/'
-MAT_SUBDIR = DATA_PATH + 'matfiles/'
-P_FILE_PATH = DATA_PATH + 'P*.zip'
+IMAGE_PATH = 'images/'
+MAT_SUBDIR = 'matfiles/'
+P_FILE_REGEX = 'P*.zip'
 N_P_FILES = 12
