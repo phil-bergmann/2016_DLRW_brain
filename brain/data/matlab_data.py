@@ -1,10 +1,8 @@
-#!/usr/bin/env /home/dominik/anaconda2/bin/python
-
 import sys
 import zipfile
 import re
 import glob
-from matlab_utils import extract_mat
+from util import extract_mat
 import static
 
 file_filter_regex = r'HS_P[0-9]_ST.mat'
@@ -12,7 +10,7 @@ file_filter_regex = r'HS_P[0-9]_ST.mat'
 
 def main():
     archive_files = glob.glob(static.p_file_path)
-    assert len(archive_files) == static.n_p_files, ('Number of P archives found %i != %i' % (len(archive_files), static.n_p_files))
+    assert len(archive_files) == static.n_p_files, ('Number of P archives found: %i expected %i!' % (len(archive_files), static.n_p_files))
 
     for archive in archive_files:
         f_zip = zipfile.ZipFile(archive, 'r')
