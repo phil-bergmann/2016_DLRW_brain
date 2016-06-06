@@ -2,7 +2,7 @@ import sys
 import zipfile
 import re
 import glob
-from util import extract_mat
+from matlab_utils import extract_mat
 import static
 
 file_filter_regex = r'HS_P[0-9]_ST.mat'
