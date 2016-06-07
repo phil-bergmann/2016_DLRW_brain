@@ -226,3 +226,6 @@ pythontex-files-*/
 TSWLatexianTemp*
 
 .ropeproject
+
+# Pycharm
+.idea/
