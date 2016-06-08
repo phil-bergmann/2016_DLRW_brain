@@ -56,7 +56,6 @@ class RNN(object):
         result_sequence = s[:, 0, :]
 
         # cost is defined as difference between desired output and the result sequence
-        # TODO: try different costs like KL-Divergence or L1 to encourage sparsity on output
         cost = T.mean(T.mean(T.sqr(result_sequence - output), axis=0))
         self.gradients = T.grad(cost, self.params)
 
