@@ -226,3 +226,9 @@ pythontex-files-*/
 TSWLatexianTemp*
 
 .ropeproject
+
+# Pycharm
+.idea/
+
+# Metadata Files on exfat Devices under Mac OS
+._*
