@@ -20,7 +20,7 @@ class RNN(object):
 
         :type output: theano.tensor.dmatrix
         :param output: a symbolic tensor of shape (timesteps, nl) containing only 0 and a 1 at the position
-        where event is excpected, don't forget to add a "none" label
+        where event is excpected, don't forget to add a "none" label consisting of only 1 and 0 where other event occurs
 
         :type nh: int
         :param nh: dimension of the hidden layer
