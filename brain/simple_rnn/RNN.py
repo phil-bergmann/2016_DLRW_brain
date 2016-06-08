@@ -19,8 +19,8 @@ class RNN(object):
         :param input: a symbolic tensor of shape (timesteps, n_in)
 
         :type output: theano.tensor.dmatrix
-        :param output: a symbolic tensor of shape (timesteps, nl) containing only 0 and a 1 at the position
-        where event is excpected, don't forget to add a "none" label consisting of only 1 and 0 where other event occurs
+        :param output: a symbolic tensor of shape (timesteps) containing the index of class we expect, don't forget to
+        add a "none" class for every timestep nothing is supposed to happen
 
         :type nh: int
         :param nh: dimension of the hidden layer
@@ -56,7 +56,7 @@ class RNN(object):
         result_sequence = s[:, 0, :]
 
         # cost is defined as difference between desired output and the result sequence
-        cost = T.mean(T.mean(T.sqr(result_sequence - output), axis=0))
-        self.gradients = T.grad(cost, self.params)
+        nll = -T.mean(T.log(self.result_seqence)[T.arange(output.shape[0]), output])
+        self.gradients = T.grad(nll, self.params)
 
         #updates = OrderedDict((p, p - lr * g) for p, g in zip(self.params, gradients))
