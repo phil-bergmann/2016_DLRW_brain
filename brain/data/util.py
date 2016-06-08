@@ -36,8 +36,31 @@ def _todict(matobj):
     return dict
 
 def extract_mat(zf, filename, relative_path=''):
+    '''
+    Comment from phil:
+    Would seem logic to exctract here only and not to return anything, as this is loadnestedmat() for
+    '''
     try:
         zf.extract(filename, path=relative_path+st.MAT_SUBDIR)
         return loadnestedmat(relative_path+st.MAT_SUBDIR+filename)
     except KeyError:
         print 'ERROR: Did not find %s in zip file' % filename
+
+def getTables(regex)
+    '''
+    A function that returns all Tables matching to a particular regular expression
+    Also extracts Tables that aren't yet present in st.MAT_SUBDIR
+    
+    e.g. r'WS_P1_S[0-9].mat' should return all windowed session tables as a list from Person 1
+    '''
+    data = []
+        archive_files = glob.glob(st.DATA_PATH + st.P_FILE_REGEX)
+        for archive in archive_files:
+            f_zip = zipfile.ZipFile(archive, 'r')
+            mat_file_list = f_zip.namelist()
+            for f_mat in mat_file_list:
+                if re.search(regex, f_mat):
+                    if (not os.path.isfile(st.MAT_SUBDIR + f_mat)):
+                        extract_mat(f_zip, f_mat)
+                    data.append(loadnestedmat(st.MAT_SUBDIR + f_mat))
+    return data
