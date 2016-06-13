@@ -7,6 +7,7 @@ import theano.tensor as T
 import climin
 import climin.initialize
 import climin.util
+import matplotlib.pyplot as plt
 
 import brain.data.globals as st
 from brain.data.util import getTables, getRaw
@@ -17,7 +18,7 @@ WS_file_filter_regex = r'WS_P[0-9]*_S[0-9].mat'
 WS_file_filter_regex_P1 = r'WS_P1_S[0-9].mat'
 AllLifts_P1 = r'P1_AllLifts.mat'
 
-def test_RNN(nh=300, nl=3, n_in=32):
+def test_RNN(nh=100, nl=3, n_in=32):
     # nearest element in list min(myList, key=lambda x:abs(x-myNumber))
     # Wait until implemented in brain.data.util
     data = getTables(WS_file_filter_regex_P1)
@@ -29,26 +30,33 @@ def test_RNN(nh=300, nl=3, n_in=32):
     handStart = event_data[:, 33]
     liftOff = event_data[:, 18]
 
-    # get nearest index in eeg data for given event and get length of longest eeg window
+    # get nearest index in eeg data for given event and get length of longest/shortest eeg window
     handStartIndex = []
     liftOffIndex = []
     maxLengthEEG = 0
+    minLengthEEG = numpy.inf
     for i in range(len(data)):
-        handStartIndex.append(numpy.where(data[i]['eeg_t'] == min(data[i]['eeg_t'], key=lambda x:abs(handStart[i]-x)))[0][0])
-        liftOffIndex.append(numpy.where(data[i]['eeg_t'] == min(data[i]['eeg_t'], key=lambda x:abs(liftOff[i]-x)))[0][0])
+        handStartIndex.append(numpy.where(data[i]['eeg_t'] == min(data[i]['eeg_t'], key=lambda x: abs(handStart[i]-x)))[0][0])
+        liftOffIndex.append(numpy.where(data[i]['eeg_t'] == min(data[i]['eeg_t'], key=lambda x: abs(liftOff[i]-x)))[0][0])
         if len(data[i]['eeg']) > maxLengthEEG:
             maxLengthEEG = len(data[i]['eeg'])
+        if len(data[i]['eeg']) < minLengthEEG:
+            minLengthEEG = len(data[i]['eeg'])
+
+    sequenceLength = maxLengthEEG
 
     # Construct target vectors (0 = 'none' event)
-    targets = numpy.zeros((datasetSize, maxLengthEEG), dtype='int64')
+    targets = numpy.zeros((datasetSize, sequenceLength), dtype='int64')
     for i in range(datasetSize):
-        targets[i][handStartIndex[i]] = 1
-        targets[i][liftOffIndex[i]] = 2
+        targets[i][handStartIndex[i]-100: handStartIndex[i]+100] = 1
+        targets[i][liftOffIndex[i]-100: liftOffIndex[i]+100] = 2
+        #print(str(handStartIndex[i]) + " " + str(liftOffIndex[i]))
 
     # Construct data array with 0 padding at the end for shorter sequences
-    eeg_data = numpy.zeros((datasetSize, maxLengthEEG, 32))
+    eeg_data = numpy.zeros((datasetSize, sequenceLength, 32))
     for i in range(datasetSize):
         eeg_data[i, 0:data[i]['eeg'].shape[0]] = data[i]['eeg']
+        #eeg_data[i, :] = data[i]['eeg'][0: sequenceLength]
 
 
     tmpl = [(n_in, nh), (nh, nh), (nh, nl), nh, nl, nh]
@@ -87,9 +95,33 @@ def test_RNN(nh=300, nl=3, n_in=32):
 
     opt = climin.adadelta.Adadelta(wrt, d_loss_wrt_pars, step_rate=1, decay=0.9, momentum=0, offset=0.0001, args=args)
 
+    def plot():
+        figure, (axes) = plt.subplots(4, 1)
+
+        x_axis = numpy.arange(sequenceLength)
+
+        result = classifier.result_sequence.eval({x: eeg_data[0]})
+
+        axes[0].set_title("labels")
+        axes[0].plot(x_axis, targets[0], label="targets")
+        axes[1].set_title("none_prob")
+        axes[1].plot(x_axis, result[:, 0], label="none")
+        axes[2].set_title("handStart_prob")
+        axes[2].plot(x_axis, result[:, 1], label="handStart")
+        axes[3].set_title("liftOff_prob")
+        axes[3].plot(x_axis, result[:, 2], label="liftOff")
+
+        figure.subplots_adjust(hspace=0.5)
+
+        figure.savefig('test.png')
+
+        plt.close(figure)
+
     for info in opt:
         iteration = info['n_iter']
-        if iteration > 10:
+        if iteration % 10 == 0:
+            plot()
+        if iteration > 500:
             break
 
-
+    plot()
