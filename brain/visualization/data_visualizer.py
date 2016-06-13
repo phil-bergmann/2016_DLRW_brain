@@ -4,7 +4,7 @@ import sys
 import glob
 from eeg_plotter import *
 import brain.data.globals as st
-from brain.data.util import extract_mat, _todict
+from brain.data.util import extract_mat
 
 HS_file_filter_regex = r'HS_P[0-9]_ST.mat'
 WS_file_filter_regex = r'WS_P[0-9]_S[0-9].mat'
@@ -44,17 +44,16 @@ def main():
                 for trial, win in enumerate(windows):
                 # trial = 5
                 # win = ws.get('win')[trial]
-                    win = _todict(win)
 
-                times_eeg = win.get('eeg_t')
-                data_eeg = win.get('eeg').transpose()
+                    times_eeg = win.get('eeg_t')
+                    data_eeg = win.get('eeg').transpose()
 
-                led_on_time = win.get('LEDon')
-                led_off_time = win.get('LEDoff')
-                led_on_idx = time_to_series_index(times_eeg, led_on_time)
-                led_off_idx = time_to_series_index(times_eeg, led_off_time)
+                    led_on_time = win.get('LEDon')
+                    led_off_time = win.get('LEDoff')
+                    led_on_idx = time_to_series_index(times_eeg, led_on_time)
+                    led_off_idx = time_to_series_index(times_eeg, led_off_time)
 
-                visualize_ws(data_eeg, names_eeg, series_id, participant_id, trial, led_on_idx, led_off_idx)
+                    visualize_ws(data_eeg, names_eeg, series_id, participant_id, trial, led_on_idx, led_off_idx)
 
             # if re.search(HS_file_filter_regex, repr(f_mat)):
             #     mat = extract_mat(f_zip, f_mat, relative_path='../')
