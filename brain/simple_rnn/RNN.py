@@ -53,10 +53,12 @@ class RNN(object):
 
         [h, s], _ = theano.scan(fn=recurrence, sequences=self.x, outputs_info=[self.h0, None], n_steps=self.x.shape[0])
 
-        result_sequence = s[:, 0, :]
+        self.result_sequence = s[:, 0, :]
 
         # cost is defined as difference between desired output and the result sequence
-        nll = -T.mean(T.log(self.result_seqence)[T.arange(output.shape[0]), output])
+        nll = -T.mean(T.log(self.result_sequence)[T.arange(output.shape[0]), output])
         self.gradients = T.grad(nll, self.params)
+
+        self.cost = nll
 
         #updates = OrderedDict((p, p - lr * g) for p, g in zip(self.params, gradients))
