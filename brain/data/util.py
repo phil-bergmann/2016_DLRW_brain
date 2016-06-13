@@ -99,7 +99,7 @@ def getTables(regex):
     participant_regex = reghandler.get_participant()
 
     data = []
-    archive_files = glob.glob('../'+st.DATA_PATH + st.P_FILE_REGEX)
+    archive_files = glob.glob(st.DATA_PATH + st.P_FILE_REGEX)
     for archive in archive_files:
         f_zip = zipfile.ZipFile(archive, 'r')
         mat_file_list = f_zip.namelist()
@@ -121,4 +121,26 @@ def getTables(regex):
                     ws = mat.get('ws')
                     for win in enumerate(ws.get('win')):
                         data.append(win[1])
+    return data
+
+def getRaw(regex):
+    '''
+    A function that returns all Tables matching to a particular regular expression
+    Also extracts Tables that aren't yet present in st.MAT_SUBDIR
+        
+    e.g. r'WS_P1_S[0-9].mat' should return all windowed session tables as a list from Person 1
+    
+    This function returns just the raw tables and does not do any preprocessing
+    '''
+    
+    
+    data = []
+    archive_files = glob.glob(st.DATA_PATH + st.P_FILE_REGEX)
+    for archive in archive_files:
+        f_zip = zipfile.ZipFile(archive, 'r')
+        mat_file_list = f_zip.namelist()
+        for f_mat in mat_file_list:
+            if re.search(regex, f_mat):
+                mat = extract_mat(f_zip, f_mat)
+                data.append(mat)
     return data
