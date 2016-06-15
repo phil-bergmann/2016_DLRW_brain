@@ -1,3 +1,4 @@
+# TODO: move this to a config.ini file
 DATA_PATH = 'data/'
 IMAGE_PATH = 'images/'
 MAT_SUBDIR = 'matfiles/'
