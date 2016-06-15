@@ -4,6 +4,7 @@ PROJECT_NAME = '2016-DLRW-brain'
 DATASET = FileList[ '*/**/*.mat', '*/**/*.zip' ]
 SOURCE_FILES = FileList['*/**/*.py']
 DOCUMENTATION = FileList['*/**/*.tex']
+LATEXMK_OPTIONS = '-gg -d -cd -pdf -halt-on-error'
 
 CLEAN << FileList['doc/*.{aux,log,out}']
 CLEAN << DATASET
@@ -32,12 +33,12 @@ end
 namespace :doc do
   namespace :compile do
     task :once do
-    `latexmk -gg -d -cd -pv -pdf -halt-on-error -jobname=#{PROJECT_NAME} doc/main.tex`
+      sh "latexmk #{LATEXMK_OPTIONS} -jobname=#{PROJECT_NAME} doc/main.tex"
     end
     
     desc 'countinuusly run latexmk'
     task :continuous do
-    `latexmk -gg -d -cd -pvc -pdf -halt-on-error -jobname=#{PROJECT_NAME} doc/main.tex`
+      sh "latexmk #{LATEXMK_OPTIONS} -pvc -jobname=#{PROJECT_NAME} doc/main.tex"
     end
   end
 
