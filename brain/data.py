@@ -3,10 +3,6 @@
 #
 # Copyright © 2016 Roman C. Podolski <roman.podolski@tum.de>
 #
-# Licensed under the "THE BEER-WARE LICENSE" (Revision 42):
-# wrote this file. As long as you retain this notice you
-# can do whatever you want with this stuff. If we meet some day, and you think
-# this stuff is worth it, you can buy me a beer or coffee in return
 
 """
 TODO Write docstring
@@ -38,21 +34,40 @@ def load_data(participant, type_of_data='eeg'):
     download_way_eeg_gal(participant)
     unzip_way_eeg_gal(participant)
 
-    if type_of_data ==  'eeg':
-        X, Y = load_eeg(participant)
-    elif type_of_data == 'emg':
-        X, Y = load_emg(participant)
-    else:
-        raise 'unknown type of data: %s' % type_of_data
+    mat_file = os.path.join(DATA_DIR, 'P%d_AllLifts.mat' % participant)
+    hand_start = loadnestedmat(mat_file)['P']['AllLifts'][:, 33]
 
-    # eeg eeg_t inputs
-    # eeg_t inputs
+    mat_file_list = glob.glob('%s/WS_P%d_*.mat' % (DATA_DIR, participant))
+    storage = []
+    for mat_file in mat_file_list:
+        print('load windowed eeg data for participant #%d - name:'
+              % participant, end=' ')
+        data = loadnestedmat(mat_file)['ws']
+        print('%s, series #%d ...' % (data['name'], data['series']), end=' ')
+        i = 0
+        for w in data['win']:
+            X = np.asarray(w['eeg'])
+            eeg_t = np.asarray(w['eeg_t'])
+            led_on = np.asarray(w['LEDon'])
+            Y = np.zeros_like(w['eeg_t'])
 
-    train_set = (X, Y)
+            # set all targets, withing a range of 150 - 250 ms after the LED
+            # turns on, to class 1
+            Y[np.logical_and(
+                eeg_t >= led_on + .150, eeg_t <= led_on + .250)] = 1
+            Y[np.logical_and(
+                eeg_t >= hand_start[i] - .1, eeg_t <= hand_start[i] + .05)] = 2
+            storage.append((X, Y))
+            i += 1
+
+        print('done!')
+
     # TODO: X cross fold validation
-    valid_set = ([], []) # currently no x-cross fold validation done!
+    train_set = storage
+    valid_set = ([], [])  # currently no x-cross fold validation done!
     test_set = ([], [])
     return train_set, valid_set, test_set
+
 
 def load_eeg(participant):
     """TODO: Docstring for load_eeg.
@@ -174,8 +189,8 @@ def unzip_way_eeg_gal(participant, dir=DATA_DIR):
 
 def loadnestedmat(filename):
     '''
-    this function should be called instead of direct spio.loadmat
-    as it cures the problem of not properly recovering python dictionaries
+    this function should be called instead of direct spio.loadmat-    as
+    it cures the problem of not properly recovering python dictionaries
     from mat files. It calls the function check keys to cure all entries
     which are still mat-objects
     '''
