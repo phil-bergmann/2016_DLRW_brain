@@ -10,10 +10,19 @@ import brain.data.globals as st
 from brain.data.util import extract_mat, _todict
 
 
-'''
-Runs the bh-tsne
-'''
 def run_bhtsne(data_set, theta=0.5, perplexity=50):
+    """ Runs the bh-tsne on the given data
+
+            :type data_set: numpy array
+            :param data_set: Numpy array on which bh-tsne shall be run
+
+            :type theta: float
+            :param theta: Specifies the theta parameter
+
+            :type perplexity: int
+            :param perplexity: Specifies the perplexity
+            """
+
     n = data_set.shape[0]
     print('Running Barnes-Hut - t-SNE on %d data points...' % n)
     data_bhtsne = np.zeros((n, 2))
@@ -30,11 +39,16 @@ def run_bhtsne(data_set, theta=0.5, perplexity=50):
     return data_bhtsne
 
 
-'''
-Returns the 'ws'-struct of a WS_P*_S*.mat - file
-for a given participant and series
-'''
 def get_ws(participant=1, series=1):
+    """ Returns the 'ws'-struct of a WS_P*_S*.mat - file for a given participant and series
+
+            :type participant: int
+            :param participant: Specifies for which participant data shall be returned
+
+            :type series: int
+            :param series: Specifies for which series data shall be returned
+            """
+
     archive = '../' + st.DATA_PATH + 'P' + str(participant) + '.zip'
     print('Reading ' + archive + '...')
     f_zip = zipfile.ZipFile(archive, 'r')
@@ -43,65 +57,60 @@ def get_ws(participant=1, series=1):
     return mat.get('ws')
 
 
-def get_data(windows):
-    print('Assembling EEG- and EMG-data...')
-    eeg_shape = np.asarray([0, 32])
-    emg_shape = np.asarray([0, 5])
-    for win in windows:
-        win = _todict(win)
-        eeg_shape[0] += win.get('eeg').shape[0]
-        emg_shape[0] += win.get('emg').shape[0]
+def get_data(windows, datatype='eeg'):
+    """ Get all data out of a given window and specified datatype as one concatenated numpy array
 
-    EEG = np.empty(eeg_shape)
-    EEG_trial = np.empty(eeg_shape[0])
-    EMG = np.empty(emg_shape)
-    EMG_trial = np.empty(emg_shape[0])
-    eeg_i = 0
-    emg_i = 0
+            :type windows: matlab struct
+            :param windows: matlab struct win that contains all data of all trials of one window
+
+            :type datatype: string
+            :param datatype: Specifies what kind of data shall be extracted, e.g. 'eeg' or 'emg'
+            """
+
+    print('Assembling %s-data...' % datatype)
+    data = None
+    trials = None
+
     for trial, win in enumerate(windows):
         win = _todict(win)
-        eeg = win.get('eeg')
-        emg = win.get('emg')
-        EEG[eeg_i:eeg_i + eeg.shape[0], :] = eeg
-        EEG_trial[eeg_i:eeg_i + eeg.shape[0]] = np.ones((eeg.shape[0])) * (trial + 1)
-        EMG[emg_i:emg_i + emg.shape[0], :] = emg
-        EMG_trial[emg_i:emg_i + emg.shape[0]] = np.ones((emg.shape[0])) * (trial + 1)
-        eeg_i += eeg.shape[0]
-        emg_i += emg.shape[0]
+        data_temp = win.get(datatype)
+        trials_temp = np.ones((data_temp.shape[0])) * (trial + 1)
+        if(data is None):
+            data = np.array(data_temp)
+            trials = np.array(trials_temp)
+        else:
+            data = np.vstack((data, data_temp))
+            trials = np.hstack((trials, trials_temp))
 
-    return (EEG, EEG_trial, EMG, EMG_trial)
+    return (data, trials)
+
+
 
 
 if __name__ == '__main__':
-    #Read data for a specific participant and series and concatenate eeg and emg
+    #Read data for a specific participant and series and concatenate it into one numpy array
+    datatype = 'eeg'
     ws = get_ws(participant=1, series=1)
     windows = ws.get('win')
-    (eeg, eeg_trial, emg, emg_trial) = get_data(windows)
+    (data, trials) = get_data(windows, datatype=datatype)
 
     #Adjust parameters of bh-tsne and set the dpi-value of the output image file
-    n = eeg.shape[0]
+    n = 5000#eeg.shape[0]
     p = 30
     t = 0.5
     dpi = 500
 
     #Run bh-tsne
     start_time = timeit.default_timer()
-    Y_eeg = run_bhtsne(eeg[:n], theta=t, perplexity=p)
-    #Y_emg = run_bhtsne(emg[:n], theta=t, perplexity=p)
+    Y = run_bhtsne(data[:n], theta=t, perplexity=p)
     end_time = timeit.default_timer()
 
     print('bh-t-SNE ran for %f minutes' % ((end_time - start_time) / 60))
 
     #Create scatter plots
     print('Creating scatter plots...')
-    plt.title('EEG t-SNE')
-    plt.scatter(Y_eeg[:, 0], Y_eeg[:, 1], 10, eeg_trial[:n], edgecolors=None, marker='.')
+    plt.title('%s t-SNE' % datatype)
+    plt.scatter(Y[:, 0], Y[:, 1], s=10, c=trials[:n], marker='o', edgecolors='none')
     #plt.legend(loc='upper left', numpoints=1)
-    file = 'eeg' + str(n) + '_p' + str(p) + '_t' + str(t) + '_dpi' + str(dpi) + '.png'
+    file = datatype + str(n) + '_p' + str(p) + '_t' + str(t) + '_dpi' + str(dpi) + '.png'
     plt.savefig(file, bbox_inches='tight', dpi=dpi)
-
-    '''plt.title('EMG t-SNE')
-    plt.scatter(Y_emg[:, 0], Y_emg[:, 1], 10, emg_trial[:n], edgecolors=None, marker='.')
-    # plt.legend(loc='upper left', numpoints=1)
-    file = 'emg' + str(n) + '_p' + str(p) + '_t' + str(t) + '_dpi' + str(dpi) + '.png'
-    plt.savefig(file, bbox_inches='tight', dpi=dpi)'''
