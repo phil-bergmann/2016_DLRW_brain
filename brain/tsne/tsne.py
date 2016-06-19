@@ -70,19 +70,30 @@ def get_data(windows, datatype='eeg'):
     print('Assembling %s-data...' % datatype)
     data = None
     trials = None
+    led = None
+    data_length = 0
 
     for trial, win in enumerate(windows):
         win = _todict(win)
+        data_t = win.get(datatype + '_t')
+        led_on = np.array([win.get('LEDon'), win.get('LEDoff')])
+
         data_temp = win.get(datatype)
         trials_temp = np.ones((data_temp.shape[0])) * (trial + 1)
+        led_temp = np.where((data_t > led_on[0]) & (data_t < led_on[1]))[0] + data_length
+
         if(data is None):
             data = np.array(data_temp)
             trials = np.array(trials_temp)
+            led = np.array(led_temp)
         else:
             data = np.vstack((data, data_temp))
             trials = np.hstack((trials, trials_temp))
+            led = np.hstack((led, led_temp))
 
-    return (data, trials)
+        data_length = data_length + data_temp.shape[0]
+
+    return (data, trials, led)
 
 
 
@@ -92,13 +103,22 @@ if __name__ == '__main__':
     datatype = 'eeg'
     ws = get_ws(participant=1, series=1)
     windows = ws.get('win')
-    (data, trials) = get_data(windows, datatype=datatype)
+    (data, trials, led) = get_data(windows, datatype=datatype)
 
-    #Adjust parameters of bh-tsne and set the dpi-value of the output image file
-    n = 5000#eeg.shape[0]
+
+    # --- Adjust parameters of bh-tsne and set the dpi-value of the output image file ---
+
+    #n: Run bh_tsne on first n data points. For full data use: data.shape[0]
+    n = 5000#data.shape[0]
+    #p: perplexity
     p = 30
+    #t: theat value
     t = 0.5
+    #dpi: quality of generated plots
     dpi = 500
+
+    # -----------------------------------------------------------------------------------
+
 
     #Run bh-tsne
     start_time = timeit.default_timer()
@@ -110,7 +130,23 @@ if __name__ == '__main__':
     #Create scatter plots
     print('Creating scatter plots...')
     plt.title('%s t-SNE' % datatype)
-    plt.scatter(Y[:, 0], Y[:, 1], s=10, c=trials[:n], marker='o', edgecolors='none')
-    #plt.legend(loc='upper left', numpoints=1)
+
+    #Separating data into points where the led was on and off respectively
+    led = led[np.where(led < n)]
+    trials = trials[:n]
+
+    mask = np.ones(Y.shape[0], dtype=bool)
+    mask[led] = False
+
+    Y_led_on = Y[led]
+    Y_led_off = Y[mask]
+    trials_led_on = trials[led]
+    trials_led_off = trials[mask]
+
+    #Plot data: Data points where the led was on are marked with a black edge
+    #Data points where the led was off have no edge color
+    plt.scatter(Y_led_off[:, 0], Y_led_off[:, 1], s=10, c=trials_led_off, marker='o', edgecolors='none')
+    plt.scatter(Y_led_on[:, 0], Y_led_on[:, 1], s=10, c=trials_led_on, marker='o', edgecolors='black')
+
     file = datatype + str(n) + '_p' + str(p) + '_t' + str(t) + '_dpi' + str(dpi) + '.png'
     plt.savefig(file, bbox_inches='tight', dpi=dpi)
