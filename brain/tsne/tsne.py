@@ -109,20 +109,30 @@ if __name__ == '__main__':
     # --- Adjust parameters of bh-tsne and set the dpi-value of the output image file ---
 
     #n: Run bh_tsne on first n data points. For full data use: data.shape[0]
-    n = 5000#data.shape[0]
+    n = 2000#data.shape[0]
     #p: perplexity
     p = 30
     #t: theat value
     t = 0.5
     #dpi: quality of generated plots
     dpi = 500
+    #randomize: Shuffle the data to overcome bh-tsne weak points
+    randomize = True
 
     # -----------------------------------------------------------------------------------
 
 
     #Run bh-tsne
+    data = data[:n]
+    if randomize:
+        shuffle = np.arange(data.shape[0])
+        np.random.shuffle(shuffle)
+        undo_shuffle = np.argsort(shuffle)
+        data[...] = data[shuffle]
     start_time = timeit.default_timer()
-    Y = run_bhtsne(data[:n], theta=t, perplexity=p)
+    Y = run_bhtsne(data, theta=t, perplexity=p)
+    if randomize:
+        Y[...] = Y[undo_shuffle]
     end_time = timeit.default_timer()
 
     print('bh-t-SNE ran for %f minutes' % ((end_time - start_time) / 60))
@@ -148,5 +158,5 @@ if __name__ == '__main__':
     plt.scatter(Y_led_off[:, 0], Y_led_off[:, 1], s=10, c=trials_led_off, marker='o', edgecolors='none')
     plt.scatter(Y_led_on[:, 0], Y_led_on[:, 1], s=10, c=trials_led_on, marker='o', edgecolors='black')
 
-    file = datatype + str(n) + '_p' + str(p) + '_t' + str(t) + '_dpi' + str(dpi) + '.png'
+    file = datatype + str(n) + '_p' + str(p) + '_t' + str(t) + '_r' + str(randomize) + '_dpi' + str(dpi) + '.png'
     plt.savefig(file, bbox_inches='tight', dpi=dpi)
