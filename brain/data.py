@@ -22,8 +22,8 @@ import globals as st
 import glob
 import re
 
-# TODO: load the data dir from config.ini
-DATA_DIR = 'dataset'
+# load DATA_PATH from globals
+DATA_DIR = st.DATA_PATH
 
 def load_data(participant, type_of_data='eeg'):
     """
