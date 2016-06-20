@@ -57,7 +57,7 @@ def get_ws(participant=1, series=1):
     return mat.get('ws')
 
 
-def get_data(windows, datatype='eeg'):
+def get_data(windows, datatype='eeg', trials_from=1, trials_to='end'):
     """ Get all data out of a given window and specified datatype as one concatenated numpy array
 
             :type windows: matlab struct
@@ -74,24 +74,25 @@ def get_data(windows, datatype='eeg'):
     data_length = 0
 
     for trial, win in enumerate(windows):
-        win = _todict(win)
-        data_t = win.get(datatype + '_t')
-        led_on = np.array([win.get('LEDon'), win.get('LEDoff')])
+        if((trial+1 >= trials_from) and ((trials_to == 'end') or (trial+1 <= trials_to))):
+            win = _todict(win)
+            data_t = win.get(datatype + '_t')
+            led_on = np.array([win.get('LEDon'), win.get('LEDoff')])
 
-        data_temp = win.get(datatype)
-        trials_temp = np.ones((data_temp.shape[0])) * (trial + 1)
-        led_temp = np.where((data_t > led_on[0]) & (data_t < led_on[1]))[0] + data_length
+            data_temp = win.get(datatype)
+            trials_temp = np.ones((data_temp.shape[0])) * (trial + 1)
+            led_temp = np.where((data_t > led_on[0]) & (data_t < led_on[1]))[0] + data_length
 
-        if(data is None):
-            data = np.array(data_temp)
-            trials = np.array(trials_temp)
-            led = np.array(led_temp)
-        else:
-            data = np.vstack((data, data_temp))
-            trials = np.hstack((trials, trials_temp))
-            led = np.hstack((led, led_temp))
+            if(data is None):
+                data = np.array(data_temp)
+                trials = np.array(trials_temp)
+                led = np.array(led_temp)
+            else:
+                data = np.vstack((data, data_temp))
+                trials = np.hstack((trials, trials_temp))
+                led = np.hstack((led, led_temp))
 
-        data_length = data_length + data_temp.shape[0]
+            data_length = data_length + data_temp.shape[0]
 
     return (data, trials, led)
 
@@ -99,17 +100,17 @@ def get_data(windows, datatype='eeg'):
 
 
 if __name__ == '__main__':
-    #Read data for a specific participant and series and concatenate it into one numpy array
-    datatype = 'eeg'
-    ws = get_ws(participant=1, series=1)
-    windows = ws.get('win')
-    (data, trials, led) = get_data(windows, datatype=datatype)
-
 
     # --- Adjust parameters of bh-tsne and set the dpi-value of the output image file ---
 
-    #n: Run bh_tsne on first n data points. For full data use: data.shape[0]
-    n = data.shape[0]
+    #datatype: Specify if you want eeg or emg data
+    datatype = 'eeg'
+    #participant and series: Specify participant and series
+    participant = 1
+    series = 1
+    #trials_from and trials_to: Specify which trials t-SNE shall run on
+    trials_from = 1
+    trials_to = 1#'end'
     #p: perplexity
     p = 30
     #t: theat value
@@ -117,10 +118,15 @@ if __name__ == '__main__':
     #dpi: quality of generated plots
     dpi = 500
     #randomize: Shuffle the data to overcome bh-tsne weak points
-    randomize = False
+    randomize = True
 
     # -----------------------------------------------------------------------------------
 
+    #Fetching data
+    ws = get_ws(participant=participant, series=series)
+    windows = ws.get('win')
+    (data, trials, led) = get_data(windows, datatype=datatype, trials_from=trials_from, trials_to=trials_to)
+    n = data.shape[0]
 
     #Run bh-tsne
     data = data[:n]
