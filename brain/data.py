@@ -30,7 +30,13 @@ from datetime import datetime
 # load DATA_PATH from globals
 DATA_DIR = st.DATA_PATH
 
-def load_data(participant, type_of_data='eeg'):
+#TODO: add parameters for type of target
+#    - intention to reach and grasp
+#    - onset of the load phase, i.e., intention to apply lifting forces
+#    - the object
+#    - replacement of object
+#    - hand positions and velocitys (this one is going to be difficult)
+def load_data(participant):
     """
     TODO: add detailed documentation
 
@@ -67,10 +73,20 @@ def load_data(participant, type_of_data='eeg'):
 
         print('done!')
 
-    # TODO: X cross fold validation
-    train_set = storage
-    valid_set = ([], [])  # currently no x-cross fold validation done!
-    test_set = ([], [])
+    s = len(storage) // 100 * 10
+
+    train_x = [i[0] for i in storage[:len(storage) - 2 * s]]
+    train_y = [i[1] for i in storage[:len(storage) - 2 * s]]
+    train_set = (train_x, train_y)
+
+    valid_x = [i[0] for i in storage[len(storage) - 2*s:len(storage) - s]]
+    valid_y = [i[1] for i in storage[len(storage) - 2*s:len(storage) - s]]
+    valid_set = (valid_x, valid_y)
+
+    test_x = [i[0] for i in storage[len(storage) - s:]]
+    test_y = [i[1] for i in storage[len(storage) - s:]]
+    test_set = (test_x, test_y)
+
     return train_set, valid_set, test_set
 
 
