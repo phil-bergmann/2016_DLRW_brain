@@ -97,6 +97,19 @@ def get_data(windows, datatype='eeg', trials_from=1, trials_to='end'):
     return (data, trials, led)
 
 
+def shuffle(data):
+    """ Shuffle around data so that its rows are ordered in a random fashion
+
+            :type data: numpy array
+            :param data: input data to be shuffled
+            """
+
+    shuffle = np.arange(data.shape[0])
+    np.random.shuffle(shuffle)
+    undo_shuffle = np.argsort(shuffle)
+
+    return (data[shuffle], undo_shuffle)
+
 
 
 if __name__ == '__main__':
@@ -110,7 +123,7 @@ if __name__ == '__main__':
     series = 1
     #trials_from and trials_to: Specify which trials t-SNE shall run on
     trials_from = 1
-    trials_to = 1#'end'
+    trials_to = 'end'
     #p: perplexity
     p = 30
     #t: theat value
@@ -131,10 +144,7 @@ if __name__ == '__main__':
     #Run bh-tsne
     data = data[:n]
     if randomize:
-        shuffle = np.arange(data.shape[0])
-        np.random.shuffle(shuffle)
-        undo_shuffle = np.argsort(shuffle)
-        data[...] = data[shuffle]
+        (data[...], undo_shuffle) = shuffle(data)
     start_time = timeit.default_timer()
     Y = run_bhtsne(data, theta=t, perplexity=p)
     if randomize:
