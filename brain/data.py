@@ -239,7 +239,6 @@ class Regexhandler(object):
             return self._extract(series_start)
         except:
             raise Exception('Failed to extract series')
-        raise Exception('No series specified')
 
     def get_participant(self):
         try:
@@ -248,7 +247,6 @@ class Regexhandler(object):
             return self._extract(participant_start)
         except:
             raise Exception('Failed to extract participant')
-        raise Exception('No participant specified')
 
 def getTables(regex):
     '''
@@ -263,7 +261,7 @@ def getTables(regex):
     participant_regex = reghandler.get_participant()
 
     data = []
-    archive_files = glob.glob(DATA_DIR + '/' + st.P_FILE_REGEX)
+    archive_files = glob.glob(st.DATA_PATH + '/' + st.P_FILE_REGEX)
     for archive in archive_files:
         f_zip = z.ZipFile(archive, 'r')
         mat_file_list = f_zip.namelist()
@@ -307,3 +305,73 @@ def getRaw(regex):
                 mat = extract_mat(f_zip, f_mat)
                 data.append(mat)
     return data
+
+def get_emg(participant, series):
+    '''
+    returns a list of dicts, having event times and dicts of eeg and emg data
+
+    data (eeg/emg) dicts keys: windowed time in seconds from eeg_t/emg_t tables
+
+    eeg data format: 32 channels + 1 target
+    emg data format: 5 channels + 1 target
+
+    target currently: hand move window - calcuated from AllLifts events
+
+    :param participant e.g. 1, [0-9]
+    :param series e.g. 1, [0-9]
+
+    :return: list of dicts of eeg, emg data
+    '''
+    allTrials = []
+    allLifts = getRaw(r'P'+str(participant)+'_AllLifts.mat')[0].get('P')
+    allLifts_colNames = allLifts.get('ColNames')
+    data_allLifts = allLifts.get('AllLifts')
+    for sample in data_allLifts:
+        allTrials.append(dict(zip(np.asarray(allLifts_colNames), sample)))
+
+    data = []
+    ws_data = getTables(r'WS_P' + str(participant) + '_S' + str(series) + '.mat')
+    for trial_id, win in enumerate(ws_data):
+        trial_tHandStart = allTrials[trial_id].get('tHandStart')
+        trial_DurReach = allTrials[trial_id].get('Dur_Reach')
+        trial_DurPreload = allTrials[trial_id].get('Dur_Preload')
+
+        eeg_data = np.zeros((6000, st.N_EEG_SENSORS + st.N_TARGETS))
+        e = win.get('eeg')
+        eeg_data[:e.shape[0],0:st.N_EEG_SENSORS] = e
+        eeg_t = win.get('eeg_t')
+        eeg_dict = dict(zip(eeg_t, eeg_data))
+
+        for item in eeg_dict.iteritems():
+            key = item[0]
+            item[1][st.N_EEG_SENSORS] = key > trial_tHandStart and key < trial_tHandStart+trial_DurReach
+        # eeg_target_vec = {key: key > trial_tHandStart and key < trial_tHandStart+trial_DurReach for key in eeg_dict.iterkeys()}
+
+        emg_data = np.zeros((50000, st.N_EMG_SENSORS + st.N_TARGETS))
+        e = win.get('emg')
+        emg_data[:e.shape[0],0:st.N_EMG_SENSORS] = e
+        emg_t = win.get('emg_t')
+        emg_dict = dict(zip(emg_t, emg_data))
+
+        for item in emg_dict.iteritems():
+            key = item[0]
+            item[1][st.N_EMG_SENSORS] = key > trial_tHandStart and key < trial_tHandStart+trial_DurReach
+
+        data.append({'trial_id': trial_id,'eeg': eeg_dict, 'emg': emg_dict,
+                     'tHandStart': trial_tHandStart, 'DurReach': trial_DurReach, 'Dur_Preload':trial_DurPreload})
+
+    return data
+
+def normalize(data):
+    '''
+    abs(data)
+    max
+    data / max
+    data*2
+
+    :param data:
+
+    :return: normalized data
+    '''
+
+    return None
