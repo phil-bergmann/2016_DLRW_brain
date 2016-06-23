@@ -14,6 +14,10 @@ from __future__ import print_function
 import os
 import errno
 import zipfile as z
+import matplotlib
+import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
+import collections
 
 import scipy.io as spio
 import scipy
@@ -21,6 +25,7 @@ import numpy as np
 import globals as st
 import glob
 import re
+from datetime import datetime
 
 # load DATA_PATH from globals
 DATA_DIR = st.DATA_PATH
@@ -321,16 +326,18 @@ def getRaw(regex):
                 data.append(mat)
     return data
 
-def get_emg(participant, series):
+def get_eeg_emg(participant, series):
     '''
     returns a list of dicts, having event times and dicts of eeg and emg data
 
     data (eeg/emg) dicts keys: windowed time in seconds from eeg_t/emg_t tables
 
-    eeg data format: 32 channels + 1 target
-    emg data format: 5 channels + 1 target
+    eeg data format: 32 channels + 2 targets
+    emg data format: 5 channels + 2 targets
 
-    target currently: hand move window - calcuated from AllLifts events
+    targets currently:
+    1. hand move window - calcuated from AllLifts events
+    2. intention to grasp
 
     :param participant e.g. 1, [0-9]
     :param series e.g. 1, [0-9]
@@ -342,51 +349,81 @@ def get_emg(participant, series):
     allLifts_colNames = allLifts.get('ColNames')
     data_allLifts = allLifts.get('AllLifts')
     for sample in data_allLifts:
-        allTrials.append(dict(zip(np.asarray(allLifts_colNames), sample)))
+        allTrials.append(collections.OrderedDict(zip(np.asarray(allLifts_colNames), sample)))
 
     data = []
     ws_data = getTables(r'WS_P' + str(participant) + '_S' + str(series) + '.mat')
     for trial_id, win in enumerate(ws_data):
+    # trial_id = 0
+    # win = ws_data[0]
+
         trial_tHandStart = allTrials[trial_id].get('tHandStart')
         trial_DurReach = allTrials[trial_id].get('Dur_Reach')
         trial_DurPreload = allTrials[trial_id].get('Dur_Preload')
+        tGrasp_start = trial_tHandStart + trial_DurReach
+        tGrasp_end = tGrasp_start + trial_DurPreload
 
-        eeg_data = np.zeros((6000, st.N_EEG_SENSORS + st.N_TARGETS))
+        eeg_data = np.zeros((6200, st.N_EEG_SENSORS + st.N_TARGETS))
         e = win.get('eeg')
         eeg_data[:e.shape[0],0:st.N_EEG_SENSORS] = e
+        eeg_data = normalize(eeg_data)
+
         eeg_t = win.get('eeg_t')
-        eeg_dict = dict(zip(eeg_t, eeg_data))
+        eeg_dict = collections.OrderedDict(zip(eeg_t, eeg_data))
 
         for item in eeg_dict.iteritems():
             key = item[0]
-            item[1][st.N_EEG_SENSORS] = key > trial_tHandStart and key < trial_tHandStart+trial_DurReach
-        # eeg_target_vec = {key: key > trial_tHandStart and key < trial_tHandStart+trial_DurReach for key in eeg_dict.iterkeys()}
+
+            event_idx = 0
+            if key > trial_tHandStart and key < trial_tHandStart + trial_DurReach:
+                event_idx = 1
+            elif key > tGrasp_start and key < tGrasp_end:
+                event_idx = 2
+            item[1][st.N_EEG_SENSORS] = event_idx
+
+        # eeg_target_vec = np.asarray([item[32:] for item in eeg_dict.itervalues()])
+        # xaxis = range(len(eeg_target_vec))
+        # plt.plot(xaxis, eeg_target_vec[:,0])
+        # plt.plot(xaxis, eeg_target_vec[:,1])
+        # plt.show()
 
         emg_data = np.zeros((50000, st.N_EMG_SENSORS + st.N_TARGETS))
         e = win.get('emg')
         emg_data[:e.shape[0],0:st.N_EMG_SENSORS] = e
+        emg_data = normalize(emg_data)
+
         emg_t = win.get('emg_t')
-        emg_dict = dict(zip(emg_t, emg_data))
+        emg_dict = collections.OrderedDict(zip(emg_t, emg_data))
 
         for item in emg_dict.iteritems():
             key = item[0]
-            item[1][st.N_EMG_SENSORS] = key > trial_tHandStart and key < trial_tHandStart+trial_DurReach
 
-        data.append({'trial_id': trial_id,'eeg': eeg_dict, 'emg': emg_dict,
+            event_idx = 0
+            if key > trial_tHandStart and key < trial_tHandStart + trial_DurReach:
+                event_idx = 1
+            elif key > tGrasp_start and key < tGrasp_end:
+                event_idx = 2
+            item[1][st.N_EMG_SENSORS] = event_idx
+
+        data.append({'trial_id': trial_id,'eeg_target': eeg_dict, 'emg_target': emg_dict,
                      'tHandStart': trial_tHandStart, 'DurReach': trial_DurReach, 'Dur_Preload':trial_DurPreload})
 
     return data
 
+
 def normalize(data):
     '''
-    abs(data)
-    max
-    data / max
-    data*2
-
     :param data:
-
     :return: normalized data
     '''
+    maxx = 1
+    minn = -1
+    data_max = np.max(data, axis=0)
+    data_min = np.min(data, axis=0)
+    std = (data - data_min) / (data_max - data_min)
+    data_scaled = std * (maxx - minn) + minn
+    return data_scaled
 
-    return None
+def toUTCtimestamp(dt, epoch=datetime(1970, 1, 1)):
+    td = dt - epoch
+    return (td.microseconds + (td.seconds + td.days * 24 * 3600) * 10 ** 6) / 1e6
