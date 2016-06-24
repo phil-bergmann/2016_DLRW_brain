@@ -9,7 +9,6 @@ from data import get_eeg_emg
 import globals as st
 
 from breze.learn.data import interleave, padzeros, split
-
 from breze.learn import base
 from breze.learn.rnn import SupervisedFastDropoutRnn, SupervisedRnn
 import breze.learn.display as D
@@ -18,11 +17,13 @@ import climin.initialize
 import climin.stops
 import climin.mathadapt as ma
 
+import matplotlib.pyplot as plt
+
 def test_RNN(n_layers = 1, batch_size = 50):
 
-    optimizer = 'rmsprop', {'steprate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
-    #optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'steprate': .1}
-    #optimizer = 'gd', {'steprate': 1e-4, 'momentum': .99, 'momentum_type': 'nesterov'}
+    optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
+    #optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'step_rate': .1}
+    #optimizer = 'gd', {'step_rate': 1e-4, 'momentum': .99, 'momentum_type': 'nesterov'}
     #optimizer = 'adamdelta'
 
 
@@ -51,26 +52,27 @@ def test_RNN(n_layers = 1, batch_size = 50):
 
     '''
 
-    infos = []
-
+    #######################
+    # LOAD DATA TO ARRAYS #
+    #######################
     data = get_eeg_emg(1,1)
     p_train = 0.66
     n_train = int(len(data) * p_train)
     n_val = len(data) - int(len(data) * p_train)
-    X = np.zeros(n_train, data['emg_target'].shape[0], st.N_EMG_SENSORS)
-    Z = np.zeros(n_train, data['emg_target'].shape[0], st.N_TARGETS)
-    VX = np.zeros(n_val, data['emg_target'].shape[0], st.N_EMG_SENSORS)
-    VZ = np.zeros(n_val, data['emg_target'].shape[0], st.N_TARGETS)
+    X = np.zeros((n_train, st.N_EMG_SAMPLES, st.N_EMG_SENSORS))
+    Z = np.zeros((n_train, st.N_EMG_SAMPLES, st.N_EMG_TARGETS))
+    VX = np.zeros((n_val, st.N_EMG_SAMPLES, st.N_EMG_SENSORS))
+    VZ = np.zeros((n_val, st.N_EMG_SAMPLES, st.N_EMG_TARGETS))
     for i in range(len(data)):
         j = 0
         for d in data[i]['emg_target'].iteritems():
             if i < n_train:
                 X[i, j, ...] = d[1][0:st.N_EMG_SENSORS]
-                Z[i, j, ...] = d[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS+st.N_TARGETS]
+                Z[i, j, ...] = d[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS+st.N_EMG_TARGETS]
             else:
                 VX[i-n_train, j, ...] = d[1][0:st.N_EMG_SENSORS]
-                VZ[i-n_train, j, ...] = d[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_TARGETS]
-            j = j + 1
+                VZ[i-n_train, j, ...] = d[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_EMG_TARGETS]
+            j += 1
 
     climin.initialize.randomize_normal(m.parameters.data, 0, 0.01)
 
@@ -90,6 +92,31 @@ def test_RNN(n_layers = 1, batch_size = 50):
     # Set up a nice printout.
     header = '#', 'seconds', 'loss', 'val loss', 'test loss'
     print '\t'.join(header)
+
+    def plot():
+        figure, (axes) = plt.subplots(4, 1)
+
+        x_axis = np.arange(st.N_EMG_SAMPLES)
+
+        result = m.predict(VX[0:1])
+
+        axes[0].set_title("hand_move_target")
+        axes[0].plot(x_axis, VZ[0,:,0])
+        axes[1].set_title("grasp_target")
+        axes[1].plot(x_axis, VZ[0,:,1])
+        axes[2].set_title("hand_move_rnn")
+        axes[2].plot(x_axis, result[0, :, 0])
+        axes[3].set_title("grasp_rnn")
+        axes[3].plot(x_axis, result[0, :, 1])
+
+        figure.subplots_adjust(hspace=0.5)
+
+        figure.savefig('test.png')
+
+        plt.close(figure)
+
+
+    infos = []
 
     for i, info in enumerate(m.powerfit((X, Z), (VX, VZ), stop, pause, True)):
         info['loss'] = float(info['loss'])
@@ -117,3 +144,5 @@ def test_RNN(n_layers = 1, batch_size = 50):
             if isinstance(filtered_info[key], np.float32):
                 filtered_info[key] = float(filtered_info[key])
         infos.append(filtered_info)
+
+        plot()
