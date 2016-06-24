@@ -8,26 +8,26 @@
 \title{EEG curiosities}
 
 \author{
-Roman C.~Podolski
+Manuel Nickel
 \\
 %Technische Universit\"at M\"unchen\\
 %Pittsburgh, PA 15213 \\
-\texttt{roman.podolski@tum.de} \\
+\texttt{manuel.nickel@tum.de} \\
 \And
 Dominik Irimi \\
 %Affiliation \\
 %Address \\
 \texttt{dominik.irimi@gmail.com} \\
 \AND
-Philipp Dehner \\
+Christoph Dehner \\
 %Affiliation \\
 %Address \\
 \texttt{dehner@in.tum.de} \\
 \And
-Manuel Nickel \\
+Roman C.~Podolski \\
 %Affiliation \\
 %Address \\
-\texttt{manuel.nickel@tum.de} \\
+\texttt{roman.podolski@tum.de} \\
 \And
 Philipp Bergmann \\
 %Affiliation \\
@@ -63,9 +63,9 @@ Using the Barnes Hut t-SNE implementation by L.J.P. van der Maaten a t-SNE plot 
 Here is what one might expect to see as a result of t-SNE:
 \begin{itemize}
 	\item The LEDon-states are somewhat grouped together in one place while the LEDoff-states are grouped together in another place:
-	This may be considered a sign that it should be possible to extract information about the intention to grasp. As t-SNE does not ``understand'' relations in time even a simple Feed-Forward Net might work.
+	This may be considered a sign that it should be possible to extract information about the intention to grasp. As t-SNE does not ``understand'' relations in time even a simple Feedforward Net might work.
 	\item All data points are pretty much distributed randomly and there is no apparent structure in the plot:
-	This would be a signal that if there is a way to extract information about the intention to grasp, then it is not sufficient to use Feed-Forward Nets only, but one needs to at least incorporate time relations. Thus, one would try to use Recurrent Neural Nets.
+	This would be a signal that if there is a way to extract information about the intention to grasp, then it is not sufficient to use Feedforward Nets only, but one needs to at least incorporate time relations. Thus, one would try to use Recurrent Neural Nets.
 \end{itemize}
 
 \begin{figure}[h]
@@ -82,7 +82,7 @@ As this conclusion is rather unbelievable the following steps were conducted to 
 
 
 \section{Code checking}
-The Python code written to apply the EEG data on L.J.P. van der Maaten's Barnes Hut t-SNE algorithm has been checked to work as desired. In particular, key positions within the code were checked multiple times. A debugger was used to view the values of the variable \verb|data_set|, which is given as an argument to \verb|bh_tsne()|, the function that runs the actual algorithm as an executable. These values were compared to those displayed in Matlab verifying that indeed correct data is used. Figure \ref{fig:debug} shows a screenshot of this rather lenghty but trustworthy procedure. These \verb|data_set| values were checked both before randomizing the ordering and after. All checks turned out to be positive.
+The Python code written to apply the EEG data on L.J.P. van der Maaten's Barnes Hut t-SNE algorithm has been checked to work as desired. In particular, key positions within the code were checked multiple times. A debugger was used to view the values of the variable \verb|data_set|, which is given as an argument to \verb|bh_tsne()|, the function that runs the actual algorithm as an executable. These values were compared to those displayed in Matlab verifying that indeed correct data is used. Figure \ref{fig:debug} shows a screenshot of this rather lengthy but trustworthy procedure. These \verb|data_set| values were checked both before randomizing the ordering and after. All checks turned out to be positive.
 
 \begin{figure}[h]
 	\centering
@@ -110,7 +110,7 @@ As a first plausibility check the implementation was applied to the EMG data of 
 
 
 \subsection{Using a reference dataset}
-The best way to check for general plausible results seemed to create a reference dataset that can be used in the exact same way as the EEG and the EMG data respectively. Thus, the Matlab file \verb|WS_P1_S1.mat| was augmented to contain the additional datasets \verb|sp_static| and \verb|sp_var|:
+The best way to check for generally plausible results seemed to create a reference dataset that can be used in the exact same way as the EEG and the EMG data respectively. Thus, the Matlab file \verb|WS_P1_S1.mat| was augmented to contain the additional datasets \verb|sp_static| and \verb|sp_var|:
 
 
 \begin{itemize}	
@@ -140,8 +140,9 @@ It should be noted that between the t-SNE runs on different datasets the code do
 
 
 
+
 \section{Further analysis}
-If there is indeed some truth to the EEG plot in figure \ref{fig:eeg}, then it should be somewhat possible to classify the various trials using sample vectors as input. Thus a Feed Forward Neural Net was created. For this, an implementation was used that had been already applied successfully on the MNIST dataset multiple times, achieving a test error of about $1.6\%$. The script was altered just enough to allow application on the EEG data. In particular, the number of input and output neurons had to be changed. The EEG data containing 146982 samples in total was partitioned into a training-, validation- and test-set containing $4/9$, $2/9$ and $1/3$ of the original samples respectively.
+If there is indeed some truth to the EEG plot in figure \ref{fig:eeg}, then it should be somewhat possible to classify the various trials using sample vectors as input. Thus, a Feedforward Neural Net was created. For this, an implementation was used that had been already applied successfully on the MNIST dataset multiple times, achieving a test error of about $1.6\%$. The script was altered just enough to allow application on the EEG data. In particular, the number of input and output neurons had to be changed. The EEG data containing 146982 samples in total was partitioned into a training-, validation- and test-set containing $4/9$, $2/9$ and $1/3$ of the original samples respectively.
 The neural net was set up as follows:
 \begin{itemize}
 	\item Hidden Layer: 1
@@ -157,7 +158,7 @@ With these settings a validation error of $19.94\%$ and a test error of $19.69\%
 	\centering
 	\hspace*{-1.7cm}
 	\includegraphics[width=1.24\textwidth]{nnerror.png}
-	\caption{Error curves for classifying trials using a Feed Forward Neural Net on the EEG data}
+	\caption{Error curves for classifying trials using a Feedforward Neural Net on the EEG data}
 	\label{fig:nnerror}
 \end{figure}
 
@@ -165,7 +166,7 @@ With these settings a validation error of $19.94\%$ and a test error of $19.69\%
 
 
 \section{Conclusion}
-\emph{Participant 1} clearly was on an intense emotional rollercoaster during the course of the conducted lifting experiments, augmenting his mental state per trial. He obviously went through the 5 stages of emotional investment in scientific experiments as illustrated in figure \ref{fig:stickman}: Starting with highest euphoria for being part of great scientific research, followed by boredom for holding a block repeatedly, then anger and major depression when asking himself what he is doing with his life. Finally he reached acceptance when he just gave in.
+\emph{Participant 1} clearly was on an intense emotional rollercoaster during the course of the conducted lifting experiments, augmenting his mental state per trial. He obviously went through the 5 stages of emotional investment in scientific experiments as illustrated in figure \ref{fig:stickman}: Starting with highest euphoria for being part of great scientific research, followed by boredom for just holding a block repeatedly, then anger and major depression when asking himself what he is doing with his life. Finally he reached acceptance when he just gave in.
 
 \begin{figure}[h]
 	\centering
@@ -174,8 +175,9 @@ With these settings a validation error of $19.94\%$ and a test error of $19.69\%
 	\label{fig:stickman}
 \end{figure}
 
-But maybe -- just maybe -- the findings about the EEG data are not that surprising after all. At last, the individual trials in one series are performed under varying conditions. In particular, inbetween the trials the used surface was changed unpredictably as well as the weight, the candidate had to lift. In the specific case of \emph{Participant 1}, \emph{Series 1} however, the surface did not change but was 'sandpaper' for all trials. The used weight on the other hand did change. Three different ones were in use: 165g, 330g and 660g. This might certainly have an effect on how the candidate perceives the trial and thus augment his brain state. And yet, if this was the deciding factor, one would expect a t-SNE plot with rather three major clusters grouping together trials for the various weights respectively. Plus, one might also, or maybe even more so, expect to see this weight correlation in the EMG t-SNE plot.
+Then again, maybe the findings about the EEG data are not that surprising after all. At last, the individual trials in one series are performed under varying conditions. In particular, inbetween the trials the used surface was changed unpredictably as well as the weight, the candidate had to lift. In the specific case of \emph{Participant 1}, \emph{Series 1} however, the surface did not change but was 'sandpaper' for all trials. The used weight on the other hand did change. Three different ones were in use: 165g, 330g and 660g. This might certainly have an effect on how the candidate perceives the trial and thus augment his mental state. And yet, if this was the deciding factor, one would expect a t-SNE plot with rather three major clusters grouping together trials for the various weights respectively. Plus, one might also, or maybe even more so, expect to see this being reflected in the EMG t-SNE plot.
 
 How the varying conditions influence the EEG data will have to be examined more thoroughly. Furthermore, until now only the data of \emph{Participant 1}, \emph{Series 1} has been investigated in the presented manner. Other participants and series should be analyzed to see if their data shows similar characteristics.
+Moreover, data had not been normalized before feeding neither to t-SNE nor the neural net. The effect of normalization on the EEG data will have to be examined, too.
 
 \end{document}

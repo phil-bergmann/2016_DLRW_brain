@@ -123,7 +123,7 @@ if __name__ == '__main__':
     series = 1
     #trials_from and trials_to: Specify which trials t-SNE shall run on
     trials_from = 1
-    trials_to = 'end'
+    trials_to = 5#'end'
     #p: perplexity
     p = 30
     #t: theat value
