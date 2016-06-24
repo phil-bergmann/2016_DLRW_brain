@@ -18,15 +18,13 @@ import climin.initialize
 import climin.stops
 import climin.mathadapt as ma
 
-def train_rnn():
-    n_layers = 1
+def test_RNN(n_layers = 1, batch_size = 50):
 
     optimizer = 'rmsprop', {'steprate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
     #optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'steprate': .1}
     #optimizer = 'gd', {'steprate': 1e-4, 'momentum': .99, 'momentum_type': 'nesterov'}
     #optimizer = 'adamdelta'
 
-    batch_size = 50
 
     n_hiddens = [100] * n_layers
 
@@ -63,7 +61,7 @@ def train_rnn():
     Z = np.zeros(n_train, data['emg_target'].shape[0], st.N_TARGETS)
     VX = np.zeros(n_val, data['emg_target'].shape[0], st.N_EMG_SENSORS)
     VZ = np.zeros(n_val, data['emg_target'].shape[0], st.N_TARGETS)
-    for i in range():
+    for i in range(len(data)):
         j = 0
         for d in data[i]['emg_target'].iteritems():
             if i < n_train:
@@ -72,6 +70,7 @@ def train_rnn():
             else:
                 VX[i-n_train, j, ...] = d[1][0:st.N_EMG_SENSORS]
                 VZ[i-n_train, j, ...] = d[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_TARGETS]
+            j = j + 1
 
     climin.initialize.randomize_normal(m.parameters.data, 0, 0.01)
 
@@ -95,7 +94,7 @@ def train_rnn():
     for i, info in enumerate(m.powerfit((X, Z), (VX, VZ), stop, pause, True)):
         info['loss'] = float(info['loss'])
         info['val_loss'] = float(info['val_loss'])
-        info['test_loss'] = float(ma.scalar(test_nll()))
+        info['test_loss'] = 100#float(ma.scalar(test_nll()))
 
         #    if info['test_loss'] < 8.58:
         #        break
