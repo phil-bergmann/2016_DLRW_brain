@@ -6,8 +6,8 @@ import timeit
 from bhtsne import bh_tsne
 
 import zipfile
-import brain.data.globals as st
-from brain.data.util import extract_mat, _todict
+import brain.globals as st
+from brain.data import extract_mat, _todict
 
 
 def run_bhtsne(data_set, theta=0.5, perplexity=50):
