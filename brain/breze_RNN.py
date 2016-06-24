@@ -55,14 +55,17 @@ def test_RNN(n_layers = 1, batch_size = 50):
     #######################
     # LOAD DATA TO ARRAYS #
     #######################
+
+    # TODO: Breze wants the data to be aligned (timesteps, samples, dimensionality)
+
     data = get_eeg_emg(1,1)
     p_train = 0.66
     n_train = int(len(data) * p_train)
     n_val = len(data) - int(len(data) * p_train)
-    X = np.zeros((n_train, st.N_EMG_SAMPLES, st.N_EMG_SENSORS))
-    Z = np.zeros((n_train, st.N_EMG_SAMPLES, st.N_EMG_TARGETS))
-    VX = np.zeros((n_val, st.N_EMG_SAMPLES, st.N_EMG_SENSORS))
-    VZ = np.zeros((n_val, st.N_EMG_SAMPLES, st.N_EMG_TARGETS))
+    X = np.zeros((n_train, st.N_EMG_TIMESTEPS, st.N_EMG_SENSORS))
+    Z = np.zeros((n_train, st.N_EMG_TIMESTEPS, st.N_EMG_TARGETS))
+    VX = np.zeros((n_val, st.N_EMG_TIMESTEPS, st.N_EMG_SENSORS))
+    VZ = np.zeros((n_val, st.N_EMG_TIMESTEPS, st.N_EMG_TARGETS))
     for i in range(len(data)):
         j = 0
         for d in data[i]['emg_target'].iteritems():
@@ -96,7 +99,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
     def plot():
         figure, (axes) = plt.subplots(4, 1)
 
-        x_axis = np.arange(st.N_EMG_SAMPLES)
+        x_axis = np.arange(st.N_EMG_TIMESTEPS)
 
         result = m.predict(VX[0:1])
 
