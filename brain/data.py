@@ -363,7 +363,7 @@ def get_eeg_emg(participant, series):
         tGrasp_start = trial_tHandStart + trial_DurReach
         tGrasp_end = tGrasp_start + trial_DurPreload
 
-        eeg_data = np.zeros((6200, st.N_EEG_SENSORS + st.N_EEG_TARGETS))
+        eeg_data = np.zeros((st.N_EEG_SAMPLES, st.N_EEG_SENSORS + st.N_EEG_TARGETS))
         e = win.get('eeg')
         eeg_data[:e.shape[0],0:st.N_EEG_SENSORS] = e
         eeg_data = normalize(eeg_data)
@@ -386,7 +386,7 @@ def get_eeg_emg(participant, series):
         # plt.plot(xaxis, eeg_target_vec[:,1])
         # plt.show()
 
-        emg_data = np.zeros((50000, st.N_EMG_SENSORS + st.N_EMG_TARGETS))
+        emg_data = np.zeros((st.N_EMG_SAMPLES, st.N_EMG_SENSORS + st.N_EMG_TARGETS))
         e = win.get('emg')
         emg_data[:e.shape[0],0:st.N_EMG_SENSORS] = e
         emg_data = normalize(emg_data)
