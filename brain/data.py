@@ -401,7 +401,7 @@ def get_eeg_emg(participant, series):
             if key > trial_tHandStart and key < trial_tHandStart + trial_DurReach:
                 item[1][st.N_EMG_SENSORS] = 1
             elif key > tGrasp_start and key < tGrasp_end:
-                item[1][st.N_EMG_SENSORS] = 1
+                item[1][st.N_EMG_SENSORS+1] = 1
 
         data.append({'trial_id': trial_id,'eeg_target': eeg_dict, 'emg_target': emg_dict,
                      'tHandStart': trial_tHandStart, 'DurReach': trial_DurReach, 'Dur_Preload':trial_DurPreload})
