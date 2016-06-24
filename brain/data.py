@@ -418,9 +418,9 @@ def normalize(data):
     '''
     maxx = 1
     minn = -1
-    data_max = np.max(data, axis=0)
-    data_min = np.min(data, axis=0)
-    std = (data - data_min) / (data_max - data_min)
+    data_max = np.max(np.abs(data), axis=0)
+    data_min = np.min(np.abs(data), axis=0)
+    std = (np.abs(data) - data_min) / (data_max - data_min)
     data_scaled = std * (maxx - minn) + minn
     return data_scaled
 
