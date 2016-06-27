@@ -7,7 +7,7 @@ from bhtsne import bh_tsne
 
 import zipfile
 import brain.globals as st
-from brain.data import extract_mat, _todict
+from brain.data import extract_mat, normalize
 
 
 def run_bhtsne(data_set, theta=0.5, perplexity=50):
@@ -75,7 +75,6 @@ def get_data(windows, datatype='eeg', trials_from=1, trials_to='end'):
 
     for trial, win in enumerate(windows):
         if((trial+1 >= trials_from) and ((trials_to == 'end') or (trial+1 <= trials_to))):
-            win = _todict(win)
             data_t = win.get(datatype + '_t')
             led_on = np.array([win.get('LEDon'), win.get('LEDoff')])
 
@@ -119,19 +118,23 @@ if __name__ == '__main__':
     #datatype: Specify if you want eeg or emg data
     datatype = 'eeg'
     #participant and series: Specify participant and series
-    participant = 1
-    series = 1
+    participant = 7
+    series = 8
     #trials_from and trials_to: Specify which trials t-SNE shall run on
     trials_from = 1
-    trials_to = 5#'end'
+    trials_to = 'end'
     #p: perplexity
     p = 30
     #t: theat value
     t = 0.5
     #dpi: quality of generated plots
     dpi = 500
+    #directory: directory in which the plot ought to be saved
+    directory = 'plots/tsne'
     #randomize: Shuffle the data to overcome bh-tsne weak points
     randomize = True
+    #normalize: Specify of data ought to be normalized before being applied on t-SNE
+    normalize_data = True
 
     # -----------------------------------------------------------------------------------
 
@@ -143,7 +146,11 @@ if __name__ == '__main__':
 
     #Run bh-tsne
     data = data[:n]
+    if normalize_data:
+        print('Normalizing data...')
+        data[...] = normalize(data)
     if randomize:
+        print('Shuffling data...')
         (data[...], undo_shuffle) = shuffle(data)
     start_time = timeit.default_timer()
     Y = run_bhtsne(data, theta=t, perplexity=p)
@@ -174,5 +181,6 @@ if __name__ == '__main__':
     plt.scatter(Y_led_off[:, 0], Y_led_off[:, 1], s=10, c=trials_led_off, marker='o', edgecolors='none')
     plt.scatter(Y_led_on[:, 0], Y_led_on[:, 1], s=6, c=trials_led_on, marker='o', edgecolors='black')
 
-    file = datatype + str(n) + '_p' + str(p) + '_t' + str(t) + '_r' + str(randomize) + '_dpi' + str(dpi) + '.png'
+    file = directory + '/' + datatype + str(n) + '_P' + str(participant) + '_S' + str(series) + '_p' + str(p)\
+           + '_t' + str(t) + '_r' + str(randomize) + '_n' + str(normalize_data) + '_dpi' + str(dpi) + '.png'
     plt.savefig(file, bbox_inches='tight', dpi=dpi)
