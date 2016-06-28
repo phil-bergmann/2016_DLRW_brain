@@ -363,7 +363,7 @@ def get_eeg_emg(participant, series):
         tGrasp_start = trial_tHandStart + trial_DurReach
         tGrasp_end = tGrasp_start + trial_DurPreload
 
-        eeg_data = np.zeros((6200, st.N_EEG_SENSORS + st.N_TARGETS))
+        eeg_data = np.zeros((st.N_EEG_TIMESTEPS, st.N_EEG_SENSORS + st.N_EEG_TARGETS))
         e = win.get('eeg')
         eeg_data[:e.shape[0],0:st.N_EEG_SENSORS] = e
         eeg_data = normalize(eeg_data)
@@ -374,12 +374,11 @@ def get_eeg_emg(participant, series):
         for item in eeg_dict.iteritems():
             key = item[0]
 
-            event_idx = 0
+            item[1][st.N_EEG_SENSORS: st.N_EEG_SENSORS + st.N_EEG_TARGETS] = 0
             if key > trial_tHandStart and key < trial_tHandStart + trial_DurReach:
-                event_idx = 1
+                item[1][st.N_EEG_SENSORS] = 1
             elif key > tGrasp_start and key < tGrasp_end:
-                event_idx = 2
-            item[1][st.N_EEG_SENSORS] = event_idx
+                item[1][st.N_EEG_SENSORS+1] = 1
 
         # eeg_target_vec = np.asarray([item[32:] for item in eeg_dict.itervalues()])
         # xaxis = range(len(eeg_target_vec))
@@ -387,7 +386,7 @@ def get_eeg_emg(participant, series):
         # plt.plot(xaxis, eeg_target_vec[:,1])
         # plt.show()
 
-        emg_data = np.zeros((50000, st.N_EMG_SENSORS + st.N_TARGETS))
+        emg_data = np.zeros((st.N_EMG_TIMESTEPS, st.N_EMG_SENSORS + st.N_EMG_TARGETS))
         e = win.get('emg')
         emg_data[:e.shape[0],0:st.N_EMG_SENSORS] = e
         emg_data = normalize(emg_data)
@@ -398,12 +397,11 @@ def get_eeg_emg(participant, series):
         for item in emg_dict.iteritems():
             key = item[0]
 
-            event_idx = 0
+            item[1][st.N_EMG_SENSORS: st.N_EMG_SENSORS+st.N_EMG_TARGETS] = 0
             if key > trial_tHandStart and key < trial_tHandStart + trial_DurReach:
-                event_idx = 1
+                item[1][st.N_EMG_SENSORS] = 1
             elif key > tGrasp_start and key < tGrasp_end:
-                event_idx = 2
-            item[1][st.N_EMG_SENSORS] = event_idx
+                item[1][st.N_EMG_SENSORS+1] = 1
 
         data.append({'trial_id': trial_id,'eeg_target': eeg_dict, 'emg_target': emg_dict,
                      'tHandStart': trial_tHandStart, 'DurReach': trial_DurReach, 'Dur_Preload':trial_DurPreload})
@@ -418,9 +416,9 @@ def normalize(data):
     '''
     maxx = 1
     minn = -1
-    data_max = np.max(data, axis=0)
-    data_min = np.min(data, axis=0)
-    std = (data - data_min) / (data_max - data_min)
+    data_max = np.max(np.abs(data), axis=0)
+    data_min = np.min(np.abs(data), axis=0)
+    std = (np.abs(data) - data_min) / (data_max - data_min)
     data_scaled = std * (maxx - minn) + minn
     return data_scaled
 
