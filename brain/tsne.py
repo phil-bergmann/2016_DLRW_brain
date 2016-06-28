@@ -118,8 +118,8 @@ if __name__ == '__main__':
     #datatype: Specify if you want eeg or emg data
     datatype = 'eeg'
     #participant and series: Specify participant and series
-    participant = 7
-    series = 8
+    participant = 6
+    series = 3
     #trials_from and trials_to: Specify which trials t-SNE shall run on
     trials_from = 1
     trials_to = 'end'

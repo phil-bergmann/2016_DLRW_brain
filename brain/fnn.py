@@ -13,10 +13,9 @@ import theano
 import theano.tensor as T
 import itertools
 
-from LogReg import LogisticRegression, load_data
-#from util import Model, Scores, loadMNIST
+from LogReg import LogisticRegression
 from tsne import get_data, get_ws, shuffle
-import six.moves.cPickle as pickle
+from data import normalize
 import climin, climin.util, climin.initialize
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -105,10 +104,11 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=100,
 
     #---- Configure ----
     participant = 1
-    series = 1
+    series = 2
     datatype = 'eeg'
     trials_from = 1
     trials_to = 'end'
+    normalize_data = True
     #-------------------
 
 
@@ -116,6 +116,8 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=100,
     ws = get_ws(participant=participant, series=series)
     windows = ws.get('win')
     (data, trials, led) = get_data(windows, datatype=datatype, trials_from=trials_from, trials_to=trials_to)
+    if normalize_data:
+        data[...] = normalize(data)
     (temp, undo_shuffle) = shuffle(np.c_[data, trials - 1])
     n = data.shape[0]
     n_train = 4 * n // 9
@@ -189,10 +191,10 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=100,
 
     if optimizer=='GradientDescent':
         print('Running GradientDescent')
-        opt = climin.GradientDescent(flat, d_loss, step_rate=0.001, momentum=0.95, args=args)
+        opt = climin.GradientDescent(flat, d_loss, step_rate=0.01, momentum=0.95, args=args)
     elif optimizer=='RmsProp':
         print('Running RmsProp')
-        opt = climin.rmsprop.RmsProp(flat, d_loss, step_rate=0.001, args=args)
+        opt = climin.rmsprop.RmsProp(flat, d_loss, step_rate=0.01, args=args)
     #elif optimizer == 'NonlinearConjugateGradient':
     #    opt = climin.cg.NonlinearConjugateGradient(d_loss, loss, d_loss, min_grad=1e-06, args=args)
     elif optimizer == 'Adadelta':
@@ -331,9 +333,9 @@ def plot_error_curves(error_lists, best_scores, args=('Sigmoid', 'RmsProp')):
 
 
 if __name__ == '__main__':
-    activation = T.nnet.sigmoid
-    #activation = T.tanh
+    #activation = T.nnet.sigmoid
+    activation = T.tanh
     #activation = T.nnet.relu
-    optimizer = 'RmsProp'
+    optimizer = 'GradientDescent'
     lists, best_scores = test_mlp(activation=activation, optimizer=optimizer)
-    plot_error_curves(lists, best_scores, args=('Sigmoid', optimizer))
+    plot_error_curves(lists, best_scores, args=('tanh', optimizer))
