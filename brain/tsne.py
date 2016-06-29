@@ -57,7 +57,7 @@ def get_ws(participant=1, series=1):
     return mat.get('ws')
 
 
-def get_data(windows, datatype='eeg', trials_from=1, trials_to='end'):
+def get_data(windows, datatype='eeg', trials_from=1, trials_to='end', normalize_per_trial=True):
     """ Get all data out of a given window and specified datatype as one concatenated numpy array
 
             :type windows: matlab struct
@@ -79,6 +79,8 @@ def get_data(windows, datatype='eeg', trials_from=1, trials_to='end'):
             led_on = np.array([win.get('LEDon'), win.get('LEDoff')])
 
             data_temp = win.get(datatype)
+            if normalize_per_trial:
+                data_temp[...] = normalize(data_temp)
             trials_temp = np.ones((data_temp.shape[0])) * (trial + 1)
             led_temp = np.where((data_t > led_on[0]) & (data_t < led_on[1]))[0] + data_length
 
@@ -118,8 +120,8 @@ if __name__ == '__main__':
     #datatype: Specify if you want eeg or emg data
     datatype = 'eeg'
     #participant and series: Specify participant and series
-    participant = 6
-    series = 3
+    participant = 7
+    series = 8
     #trials_from and trials_to: Specify which trials t-SNE shall run on
     trials_from = 1
     trials_to = 'end'
@@ -134,14 +136,16 @@ if __name__ == '__main__':
     #randomize: Shuffle the data to overcome bh-tsne weak points
     randomize = True
     #normalize: Specify of data ought to be normalized before being applied on t-SNE
-    normalize_data = True
+    normalize_data = False
+    normalize_per_trial = True
 
     # -----------------------------------------------------------------------------------
 
     #Fetching data
     ws = get_ws(participant=participant, series=series)
     windows = ws.get('win')
-    (data, trials, led) = get_data(windows, datatype=datatype, trials_from=trials_from, trials_to=trials_to)
+    (data, trials, led) = get_data(windows, datatype=datatype, trials_from=trials_from, trials_to=trials_to,
+                                   normalize_per_trial=normalize_per_trial)
     n = data.shape[0]
 
     #Run bh-tsne
