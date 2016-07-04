@@ -21,15 +21,11 @@ import matplotlib.pyplot as plt
 
 def test_RNN(n_layers = 1, batch_size = 50):
 
-    optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
-    #optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'step_rate': .1}
+    # optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
+    optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'step_rate': .1}
     #optimizer = 'gd', {'step_rate': 1e-4, 'momentum': .99, 'momentum_type': 'nesterov'}
-    #optimizer = 'adamdelta'
-
-
+    # optimizer = 'adam'
     n_hiddens = [100] * n_layers
-
-    #from breze.arch.component.varprop.transfer import tanh
 
     m = SupervisedRnn(
         5, n_hiddens, 2,  out_transfer='sigmoid', loss='bern_ces',
@@ -49,7 +45,6 @@ def test_RNN(n_layers = 1, batch_size = 50):
             nll += f_loss(x[:, np.newaxis], z[:, np.newaxis]) * x.shape[0]
             n_time_steps += x.shape[0]
         return nll / n_time_steps
-
     '''
 
     #######################
@@ -62,20 +57,21 @@ def test_RNN(n_layers = 1, batch_size = 50):
     p_train = 0.66
     n_train = int(len(data) * p_train)
     n_val = len(data) - int(len(data) * p_train)
-    X = np.zeros((st.N_EMG_TIMESTEPS, n_train, st.N_EMG_SENSORS))
-    Z = np.zeros((st.N_EMG_TIMESTEPS, n_train, st.N_EMG_TARGETS))
-    VX = np.zeros((st.N_EMG_TIMESTEPS, n_val, st.N_EMG_SENSORS))
-    VZ = np.zeros((st.N_EMG_TIMESTEPS, n_val, st.N_EMG_TARGETS))
-    for i in range(len(data)):
-        j = 0
-        for d in data[i]['emg_target'].iteritems():
-            if i < n_train:
-                X[j, i, ...] = d[1][0:st.N_EMG_SENSORS]
-                Z[j, i, ...] = d[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS+st.N_EMG_TARGETS]
+    emg_seqlength = max([len(trial['emg_target']) for trial in data])
+    X = np.zeros((emg_seqlength, n_train, st.N_EMG_SENSORS))
+    Z = np.zeros((emg_seqlength, n_train, st.N_EMG_TARGETS))
+    VX = np.zeros((emg_seqlength, n_val, st.N_EMG_SENSORS))
+    VZ = np.zeros((emg_seqlength, n_val, st.N_EMG_TARGETS))
+    for trial_id in range(len(data)):
+        sample_id = 0
+        for sensor_set in data[trial_id]['emg_target'].iteritems():
+            if trial_id < n_train:
+                X[sample_id, trial_id, ...] = sensor_set[1][0:st.N_EMG_SENSORS]
+                Z[sample_id, trial_id, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS+st.N_EMG_TARGETS]
             else:
-                VX[j, i-n_train, ...] = d[1][0:st.N_EMG_SENSORS]
-                VZ[j, i-n_train, ...] = d[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_EMG_TARGETS]
-            j += 1
+                VX[sample_id, trial_id-n_train, ...] = sensor_set[1][0:st.N_EMG_SENSORS]
+                VZ[sample_id, trial_id-n_train, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_EMG_TARGETS]
+            sample_id += 1
 
     climin.initialize.randomize_normal(m.parameters.data, 0, 0.01)
 
@@ -92,14 +88,12 @@ def test_RNN(n_layers = 1, batch_size = 50):
     ])
 
     start = time.time()
-    # Set up a nice printout.
     header = '#', 'seconds', 'loss', 'val loss', 'test loss'
     print '\t'.join(header)
 
     def plot():
         figure, (axes) = plt.subplots(4, 1)
-
-        x_axis = np.arange(st.N_EMG_TIMESTEPS)
+        x_axis = np.arange(emg_seqlength)
 
         result = m.predict(VX[:, 0:1, :])
 
@@ -113,11 +107,8 @@ def test_RNN(n_layers = 1, batch_size = 50):
         axes[3].plot(x_axis, result[:, 0, 1])
 
         figure.subplots_adjust(hspace=0.5)
-
         figure.savefig('test.png')
-
         plt.close(figure)
-
 
     infos = []
 
