@@ -363,9 +363,10 @@ def get_eeg_emg(participant, series):
         tGrasp_start = trial_tHandStart + trial_DurReach
         tGrasp_end = tGrasp_start + trial_DurPreload
 
-        eeg_data = np.zeros((st.N_EEG_TIMESTEPS, st.N_EEG_SENSORS + st.N_EEG_TARGETS))
         e = win.get('eeg')
-        eeg_data[:e.shape[0],0:st.N_EEG_SENSORS] = e
+        eeg_seqlenght = e.shape[0]
+        eeg_data = np.zeros((eeg_seqlenght, st.N_EEG_SENSORS + st.N_EEG_TARGETS))
+        eeg_data[:eeg_seqlenght,0:st.N_EEG_SENSORS] = e
         eeg_data = normalize(eeg_data)
 
         eeg_t = win.get('eeg_t')
@@ -386,9 +387,10 @@ def get_eeg_emg(participant, series):
         # plt.plot(xaxis, eeg_target_vec[:,1])
         # plt.show()
 
-        emg_data = np.zeros((st.N_EMG_TIMESTEPS, st.N_EMG_SENSORS + st.N_EMG_TARGETS))
         e = win.get('emg')
-        emg_data[:e.shape[0],0:st.N_EMG_SENSORS] = e
+        emg_seqlenght = e.shape[0]
+        emg_data = np.zeros((emg_seqlenght, st.N_EMG_SENSORS + st.N_EMG_TARGETS))
+        emg_data[:emg_seqlenght,0:st.N_EMG_SENSORS] = e
         emg_data = normalize(emg_data)
 
         emg_t = win.get('emg_t')
@@ -403,8 +405,8 @@ def get_eeg_emg(participant, series):
             elif key > tGrasp_start and key < tGrasp_end:
                 item[1][st.N_EMG_SENSORS+1] = 1
 
-        data.append({'trial_id': trial_id,'eeg_target': eeg_dict, 'emg_target': emg_dict,
-                     'tHandStart': trial_tHandStart, 'DurReach': trial_DurReach, 'Dur_Preload':trial_DurPreload})
+        data.append({'trial_id': trial_id, 'eeg_target': eeg_dict, 'emg_target': emg_dict,
+                     'tHandStart': trial_tHandStart, 'DurReach': trial_DurReach, 'Dur_Preload': trial_DurPreload})
 
     return data
 
@@ -416,9 +418,10 @@ def normalize(data):
     '''
     maxx = 1
     minn = -1
-    data_max = np.max(np.abs(data), axis=0)
-    data_min = np.min(np.abs(data), axis=0)
-    std = (np.abs(data) - data_min) / (data_max - data_min)
+    data = np.abs(data)
+    data_max = np.max(data, axis=0)
+    data_min = np.min(data, axis=0)
+    std = (data - data_min) / (data_max - data_min)
     data_scaled = std * (maxx - minn) + minn
     return data_scaled
 
