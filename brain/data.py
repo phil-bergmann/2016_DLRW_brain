@@ -335,9 +335,9 @@ def get_eeg_emg(participant, series):
     eeg data format: 32 channels + 2 targets
     emg data format: 5 channels + 2 targets
 
-    targets currently:
-    1. hand move window - calcuated from AllLifts events
-    2. intention to grasp
+    targets (time windows):
+    1. hand move window:    tHandStart                  till tHandStart + trial_DurReach
+    2. grasp:               tHandStart + trial_DurReach till tLiftOff (including: DurPreload)
 
     :param participant e.g. 1, [0-9]
     :param series e.g. 1, [0-9]
@@ -360,8 +360,9 @@ def get_eeg_emg(participant, series):
         trial_tHandStart = allTrials[trial_id].get('tHandStart')
         trial_DurReach = allTrials[trial_id].get('Dur_Reach')
         trial_DurPreload = allTrials[trial_id].get('Dur_Preload')
+        trial_tLiftOff = allTrials[trial_id].get('tLiftOff')
         tGrasp_start = trial_tHandStart + trial_DurReach
-        tGrasp_end = tGrasp_start + trial_DurPreload
+        tGrasp_end = trial_tLiftOff #tGrasp_start + trial_DurPreload
 
         e = win.get('eeg')
         eeg_seqlenght = e.shape[0]
@@ -406,7 +407,8 @@ def get_eeg_emg(participant, series):
                 item[1][st.N_EMG_SENSORS+1] = 1
 
         data.append({'trial_id': trial_id, 'eeg_target': eeg_dict, 'emg_target': emg_dict,
-                     'tHandStart': trial_tHandStart, 'DurReach': trial_DurReach, 'Dur_Preload': trial_DurPreload})
+                     'tHandStart': trial_tHandStart, 'tLiftOff': trial_tLiftOff,
+                     'DurReach': trial_DurReach, 'Dur_Preload': trial_DurPreload})
 
     return data
 
