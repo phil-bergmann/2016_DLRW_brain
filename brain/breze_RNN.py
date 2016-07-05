@@ -16,6 +16,7 @@ import breze.learn.display as D
 import climin.initialize
 import climin.stops
 import climin.mathadapt as ma
+from climin.initialize import bound_spectral_radius
 
 import matplotlib.pyplot as plt
 
@@ -121,8 +122,8 @@ def test_RNN(n_layers = 1, batch_size = 50):
     sX, sZ, sVX, sVZ, min_seqlength = get_shaped_input(1, 1)
 
     imp_weights_skip = 5
-    W = np.ones_like(sX)[:, :, 0, np.newaxis]
-    WV = np.ones_like(sVX)[:, :, 0, np.newaxis]
+    W = np.ones_like(sZ)
+    WV = np.ones_like(sVZ)
     W[:imp_weights_skip, :, :] = 0
     WV[:imp_weights_skip, :, :] = 0
 
