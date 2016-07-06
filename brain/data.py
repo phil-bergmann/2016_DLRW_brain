@@ -326,7 +326,7 @@ def getRaw(regex):
                 data.append(mat)
     return data
 
-def get_eeg_emg(participant, series):
+def get_eeg_emg(participant, series, data_selector=None):
     '''
     returns a list of dicts, having event times and dicts of eeg and emg data
 
@@ -341,6 +341,7 @@ def get_eeg_emg(participant, series):
 
     :param participant e.g. 1, [0-9]
     :param series e.g. 1, [0-9]
+    :param data_selector "eeg", "emg" or None (default), if both data should be loaded.
 
     :return: list of dicts of eeg, emg data
     '''
@@ -364,23 +365,25 @@ def get_eeg_emg(participant, series):
         tGrasp_start = trial_tHandStart + trial_DurReach
         tGrasp_end = trial_tLiftOff #tGrasp_start + trial_DurPreload
 
-        e = win.get('eeg')
-        eeg_seqlenght = e.shape[0]
-        eeg_data = np.zeros((eeg_seqlenght, st.N_EEG_SENSORS + st.N_EEG_TARGETS))
-        eeg_data[:eeg_seqlenght,0:st.N_EEG_SENSORS] = e
-        eeg_data = normalize(eeg_data)
+        eeg_dict = None
+        if data_selector == None or data_selector == "eeg":
+            e = win.get('eeg')
+            eeg_seqlenght = e.shape[0]
+            eeg_data = np.zeros((eeg_seqlenght, st.N_EEG_SENSORS + st.N_EEG_TARGETS))
+            eeg_data[:eeg_seqlenght,0:st.N_EEG_SENSORS] = e
+            eeg_data = normalize(eeg_data)
 
-        eeg_t = win.get('eeg_t')
-        eeg_dict = collections.OrderedDict(zip(eeg_t, eeg_data))
+            eeg_t = win.get('eeg_t')
+            eeg_dict = collections.OrderedDict(zip(eeg_t, eeg_data))
 
-        for item in eeg_dict.iteritems():
-            key = item[0]
+            for item in eeg_dict.iteritems():
+                key = item[0]
 
-            item[1][st.N_EEG_SENSORS: st.N_EEG_SENSORS + st.N_EEG_TARGETS] = 0
-            if key > trial_tHandStart and key < trial_tHandStart + trial_DurReach:
-                item[1][st.N_EEG_SENSORS] = 1
-            elif key > tGrasp_start and key < tGrasp_end:
-                item[1][st.N_EEG_SENSORS+1] = 1
+                item[1][st.N_EEG_SENSORS: st.N_EEG_SENSORS + st.N_EEG_TARGETS] = 0
+                if key > trial_tHandStart and key < trial_tHandStart + trial_DurReach:
+                    item[1][st.N_EEG_SENSORS] = 1
+                elif key > tGrasp_start and key < tGrasp_end:
+                    item[1][st.N_EEG_SENSORS+1] = 1
 
         # eeg_target_vec = np.asarray([item[32:] for item in eeg_dict.itervalues()])
         # xaxis = range(len(eeg_target_vec))
@@ -388,23 +391,25 @@ def get_eeg_emg(participant, series):
         # plt.plot(xaxis, eeg_target_vec[:,1])
         # plt.show()
 
-        e = win.get('emg')
-        emg_seqlenght = e.shape[0]
-        emg_data = np.zeros((emg_seqlenght, st.N_EMG_SENSORS + st.N_EMG_TARGETS))
-        emg_data[:emg_seqlenght,0:st.N_EMG_SENSORS] = e
-        emg_data = normalize(emg_data)
+        emg_dict= None
+        if data_selector == None or data_selector == "emg":
+            e = win.get('emg')
+            emg_seqlenght = e.shape[0]
+            emg_data = np.zeros((emg_seqlenght, st.N_EMG_SENSORS + st.N_EMG_TARGETS))
+            emg_data[:emg_seqlenght,0:st.N_EMG_SENSORS] = e
+            emg_data = normalize(emg_data)
 
-        emg_t = win.get('emg_t')
-        emg_dict = collections.OrderedDict(zip(emg_t, emg_data))
+            emg_t = win.get('emg_t')
+            emg_dict = collections.OrderedDict(zip(emg_t, emg_data))
 
-        for item in emg_dict.iteritems():
-            key = item[0]
+            for item in emg_dict.iteritems():
+                key = item[0]
 
-            item[1][st.N_EMG_SENSORS: st.N_EMG_SENSORS+st.N_EMG_TARGETS] = 0
-            if key > trial_tHandStart and key < trial_tHandStart + trial_DurReach:
-                item[1][st.N_EMG_SENSORS] = 1
-            elif key > tGrasp_start and key < tGrasp_end:
-                item[1][st.N_EMG_SENSORS+1] = 1
+                item[1][st.N_EMG_SENSORS: st.N_EMG_SENSORS+st.N_EMG_TARGETS] = 0
+                if key > trial_tHandStart and key < trial_tHandStart + trial_DurReach:
+                    item[1][st.N_EMG_SENSORS] = 1
+                elif key > tGrasp_start and key < tGrasp_end:
+                    item[1][st.N_EMG_SENSORS+1] = 1
 
         data.append({'trial_id': trial_id, 'eeg_target': eeg_dict, 'emg_target': emg_dict,
                      'tHandStart': trial_tHandStart, 'tLiftOff': trial_tLiftOff,

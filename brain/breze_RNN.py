@@ -33,7 +33,7 @@ def get_shaped_input(participant, series):
     :param series:
     :return:
     '''
-    data = get_eeg_emg(participant, series)
+    data = get_eeg_emg(participant, series, "emg")
     p_train = 0.66
     n_train = int(len(data) * p_train)
     n_val = len(data) - int(len(data) * p_train)
