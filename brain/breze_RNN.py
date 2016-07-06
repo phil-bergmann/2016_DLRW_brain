@@ -136,7 +136,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
     W[:imp_weights_skip, :, :] = 0
     WV[:imp_weights_skip, :, :] = 0
 
-    climin.initialize.randomize_normal(m.parameters.data, 0, 0.01)
+    climin.initialize.randomize_normal(m.parameters.data, 0, 0.1)
 
     max_passes = 100
     max_minutes = 10
