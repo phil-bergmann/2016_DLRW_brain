@@ -89,12 +89,12 @@ def get_shaped_input(participant, series):
     VZ_trim = VZ[:seqlength]
     sVZ = np.zeros((st.STRIDE_LEN, time_win_val, st.N_EMG_TARGETS))
     sVZ = VZ_trim.reshape((st.STRIDE_LEN, time_win_val, st.N_EMG_TARGETS))
-    return sX, sZ, sVX, sVZ, min_seqlength
+    return sX, sZ, sVX, sVZ, seqlength
 
 def test_RNN(n_layers = 1, batch_size = 50):
 
-    # optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
-    optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'step_rate': .1}
+    optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
+    #optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'step_rate': .1}
     # optimizer = 'adam'
     n_hiddens = [100] * n_layers
 
@@ -119,7 +119,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
         return nll / n_time_steps
     '''
 
-    sX, sZ, sVX, sVZ, min_seqlength = get_shaped_input(1, 1)
+    sX, sZ, sVX, sVZ, seqlength = get_shaped_input(1, 1)
 
     imp_weights_skip = 5
     W = np.ones_like(sZ)
@@ -147,14 +147,16 @@ def test_RNN(n_layers = 1, batch_size = 50):
 
     def plot():
         figure, (axes) = plt.subplots(4, 1)
-        x_axis = np.arange(min_seqlength)
+        x_axis = np.arange(seqlength)
 
-        result = m.predict(sVX[:, 0:1, :])
+        input_for_plot = sVX.reshape((seqlength,-1,st.N_EMG_SENSORS))[:, 0:1, :]
+        target_for_plot = sVZ.reshape((seqlength,-1,st.N_EMG_TARGETS))[:, 0:1, :]
+        result = m.predict(input_for_plot)
 
         axes[0].set_title("hand_move_target")
-        axes[0].plot(x_axis, sVZ[:, 0, 0])
+        axes[0].plot(x_axis, target_for_plot[:, 0, 0])
         axes[1].set_title("grasp_target")
-        axes[1].plot(x_axis, sVZ[:, 0, 1])
+        axes[1].plot(x_axis, target_for_plot[:, 0, 1])
         axes[2].set_title("hand_move_rnn")
         axes[2].plot(x_axis, result[:, 0, 0])
         axes[3].set_title("grasp_rnn")
@@ -165,8 +167,8 @@ def test_RNN(n_layers = 1, batch_size = 50):
         plt.close(figure)
 
     def report(info):
-        print(info)
-        return False
+        #print(info)
+        return True
 
     infos = []
     for i, info in enumerate(m.powerfit((sX, sZ, W), (sVX, sVZ, WV), stop=stop, report=report, eval_train_loss=True)):
