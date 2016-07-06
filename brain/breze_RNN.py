@@ -20,7 +20,7 @@ from climin.initialize import bound_spectral_radius
 
 import matplotlib.pyplot as plt
 
-def get_shaped_input(participant, series):
+def get_shaped_input(participant, series, subsample=0):
     '''
 
     receive and reshape (emg) data to:
@@ -66,41 +66,50 @@ def get_shaped_input(participant, series):
                 VZ[timestep, trial_id-n_train, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_EMG_TARGETS]
             timestep += 1
 
+    # subsample
+    if subsample > 0:
+        for i in range(0, len(X), subsample):
+            X[i] = np.average(X[i:i+subsample-1])
+
+        #X = X[::subsample]
+        Z = Z[::subsample]
+
+        for i in range(0, len(VX), subsample):
+            VX[i] = np.average(VX[i:i + subsample - 1])
+
+        #VX = VX[::subsample]
+        VZ = VZ[::subsample]
+        seqlength = seqlength/subsample
+        time_win_train = time_win_train/subsample
+        time_win_val = time_win_val/subsample
+
     # cut data to smallest overlap (along time axis)
-    X_trim = np.zeros((seqlength, n_train, st.N_EMG_SENSORS))
     X_trim = X[:seqlength]
-    sX = np.zeros((st.STRIDE_LEN, time_win_train, st.N_EMG_SENSORS))
+
     sX = X_trim.reshape((st.STRIDE_LEN, time_win_train, st.N_EMG_SENSORS))
 
-    Z_trim = np.zeros((seqlength, n_train, st.N_EMG_TARGETS))
     Z_trim = Z[:seqlength]
-    sZ = np.zeros((st.STRIDE_LEN, time_win_train, st.N_EMG_TARGETS))
     sZ = Z_trim.reshape((st.STRIDE_LEN, time_win_train, st.N_EMG_TARGETS))
 
-    VX_trim = np.zeros((seqlength, n_val, st.N_EMG_SENSORS))
     VX_trim = VX[:seqlength]
     print VX_trim.shape
 
-    sVX = np.zeros((st.STRIDE_LEN, time_win_val, st.N_EMG_SENSORS))
     sVX = VX_trim.reshape((st.STRIDE_LEN, time_win_val, st.N_EMG_SENSORS))
     print sVX.shape
 
-    VZ_trim = np.zeros((seqlength, n_val, st.N_EMG_TARGETS))
     VZ_trim = VZ[:seqlength]
-    sVZ = np.zeros((st.STRIDE_LEN, time_win_val, st.N_EMG_TARGETS))
     sVZ = VZ_trim.reshape((st.STRIDE_LEN, time_win_val, st.N_EMG_TARGETS))
     return sX, sZ, sVX, sVZ, seqlength
 
 def test_RNN(n_layers = 1, batch_size = 50):
-
-    optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
-    #optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'step_rate': .1}
+    #optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
+    optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'step_rate': .1}
     # optimizer = 'adam'
     n_hiddens = [100] * n_layers
 
     m = SupervisedRnn(
         5, n_hiddens, 2,  out_transfer='sigmoid', loss='bern_ces',
-        hidden_transfers=['lstm'] * n_layers,
+        hidden_transfers=['tanh'] * n_layers,
         batch_size=batch_size,
         imp_weight=True,
         optimizer=optimizer)
@@ -119,9 +128,9 @@ def test_RNN(n_layers = 1, batch_size = 50):
         return nll / n_time_steps
     '''
 
-    sX, sZ, sVX, sVZ, seqlength = get_shaped_input(1, 1)
+    sX, sZ, sVX, sVZ, seqlength = get_shaped_input(1, 1,subsample=10)
 
-    imp_weights_skip = 5
+    imp_weights_skip = 100
     W = np.ones_like(sZ)
     WV = np.ones_like(sVZ)
     W[:imp_weights_skip, :, :] = 0
@@ -130,7 +139,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
     climin.initialize.randomize_normal(m.parameters.data, 0, 0.01)
 
     max_passes = 100
-    max_minutes = 6
+    max_minutes = 10
     max_iter = max_passes * sX.shape[1] / m.batch_size
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
     pause = climin.stops.ModuloNIterations(batches_per_pass * 1)
