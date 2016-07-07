@@ -68,16 +68,16 @@ def get_shaped_input(participant, series, subsample=0):
 
     # subsample
     if subsample > 0:
-        for i in range(0, len(X), subsample):
-            X[i] = np.average(X[i:i+subsample-1])
+        #for i in range(0, len(X), subsample):
+        #    X[i] = np.average(X[i:i+subsample-1])
 
-        #X = X[::subsample]
+        X = X[::subsample]
         Z = Z[::subsample]
 
-        for i in range(0, len(VX), subsample):
-            VX[i] = np.average(VX[i:i + subsample - 1])
+        #for i in range(0, len(VX), subsample):
+        #    VX[i] = np.average(VX[i:i + subsample - 1])
 
-        #VX = VX[::subsample]
+        VX = VX[::subsample]
         VZ = VZ[::subsample]
         seqlength = seqlength/subsample
         time_win_train = time_win_train/subsample
@@ -85,20 +85,19 @@ def get_shaped_input(participant, series, subsample=0):
 
     # cut data to smallest overlap (along time axis)
     X_trim = X[:seqlength]
-
-    sX = X_trim.reshape((st.STRIDE_LEN, time_win_train, st.N_EMG_SENSORS))
+    sX = X_trim.transpose(1,0,2).reshape((time_win_train, st.STRIDE_LEN, st.N_EMG_SENSORS)).transpose(1,0,2)
 
     Z_trim = Z[:seqlength]
-    sZ = Z_trim.reshape((st.STRIDE_LEN, time_win_train, st.N_EMG_TARGETS))
+    sZ = Z_trim.transpose(1,0,2).reshape((time_win_train, st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1,0,2)
 
     VX_trim = VX[:seqlength]
     print VX_trim.shape
-
-    sVX = VX_trim.reshape((st.STRIDE_LEN, time_win_val, st.N_EMG_SENSORS))
+    sVX = VX_trim.transpose(1,0,2).reshape((time_win_val, st.STRIDE_LEN, st.N_EMG_SENSORS)).transpose(1,0,2)
     print sVX.shape
 
     VZ_trim = VZ[:seqlength]
-    sVZ = VZ_trim.reshape((st.STRIDE_LEN, time_win_val, st.N_EMG_TARGETS))
+    sVZ = VZ_trim.transpose(1,0,2).reshape((time_win_val, st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1,0,2)
+
     return sX, sZ, sVX, sVZ, seqlength
 
 def test_RNN(n_layers = 1, batch_size = 50):
@@ -130,16 +129,17 @@ def test_RNN(n_layers = 1, batch_size = 50):
 
     sX, sZ, sVX, sVZ, seqlength = get_shaped_input(1, 1,subsample=10)
 
-    imp_weights_skip = 100
+    imp_weights_skip = 150
     W = np.ones_like(sZ)
     WV = np.ones_like(sVZ)
     W[:imp_weights_skip, :, :] = 0
     WV[:imp_weights_skip, :, :] = 0
 
     climin.initialize.randomize_normal(m.parameters.data, 0, 0.1)
+    #climin.initialize.bound_spectral_radius(m.parameters.data)
 
     max_passes = 100
-    max_minutes = 10
+    max_minutes = 60
     max_iter = max_passes * sX.shape[1] / m.batch_size
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
     pause = climin.stops.ModuloNIterations(batches_per_pass * 1)
@@ -158,8 +158,8 @@ def test_RNN(n_layers = 1, batch_size = 50):
         figure, (axes) = plt.subplots(4, 1)
         x_axis = np.arange(seqlength)
 
-        input_for_plot = sVX.reshape((seqlength,-1,st.N_EMG_SENSORS))[:, 0:1, :]
-        target_for_plot = sVZ.reshape((seqlength,-1,st.N_EMG_TARGETS))[:, 0:1, :]
+        input_for_plot = sVX.transpose(1,0,2).reshape((-1, seqlength,st.N_EMG_SENSORS)).transpose(1,0,2)[:, 0:1, :]
+        target_for_plot = sVZ.transpose(1,0,2).reshape((-1, seqlength,st.N_EMG_TARGETS)).transpose(1,0,2)[:, 0:1, :]
         result = m.predict(input_for_plot)
 
         axes[0].set_title("hand_move_target")
