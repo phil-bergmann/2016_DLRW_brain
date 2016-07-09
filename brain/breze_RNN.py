@@ -34,40 +34,54 @@ def get_shaped_input(participant, series, subsample=0):
     :return:
     '''
     data, eventNames = get_eeg_emg(participant, series, "emg")
-    p_train = 0.66
+    p_train = 0.7
+    p_val = 0.15
     n_train = int(len(data) * p_train)
-    n_val = len(data) - int(len(data) * p_train)
+    n_val = int(len(data) * (p_val + p_train)) - int(len(data) * p_train)
+    n_test = len(data) - n_train - n_val
+
+    print('[*] Samples Train: %d' %(n_train))
+    print('[*] Samples Validation: %d' % (n_val))
+    print('[*] Samples Test: %d' % (n_test))
 
     len_arr = [len(trial['emg_target']) for trial in data]
     max_seqlength = max(len_arr)
     min_seqlength = min(len_arr)
-    print('min seqlength: %i' % min_seqlength)
+    print('[*] min seqlength: %i' % min_seqlength)
 
-    seqlen_mod_300 = min_seqlength % st.STRIDE_LEN
-    seqlength = min_seqlength - seqlen_mod_300
-    print('seqlength: %i' % seqlength)
-    time_win_train = int(np.floor(seqlength * n_train / st.STRIDE_LEN))   # 33000*22/300 = 2420
-    print('time_win: %i' % time_win_train)
-    time_win_val = int(np.floor(seqlength * n_val / st.STRIDE_LEN))    # 33000*12/300 = 1320
-    print('time_win_val: %i' % time_win_val)
+
+    #seqlen_mod_300 = min_seqlength % st.STRIDE_LEN
+    #seqlength = min_seqlength - seqlen_mod_300
+    #print('seqlength: %i' % seqlength)
+    #time_win_train = int(np.floor(seqlength * n_train / st.STRIDE_LEN))   # 33000*22/300 = 2420
+    #print('time_win: %i' % time_win_train)
+    #time_win_val = int(np.floor(seqlength * n_val / st.STRIDE_LEN))    # 33000*12/300 = 1320
+    #print('time_win_val: %i' % time_win_val)
+    seqlength = min_seqlength
 
     X = np.zeros((max_seqlength, n_train, st.N_EMG_SENSORS))
     Z = np.zeros((max_seqlength, n_train, st.N_EMG_TARGETS))
     VX = np.zeros((max_seqlength, n_val, st.N_EMG_SENSORS))
     VZ = np.zeros((max_seqlength, n_val, st.N_EMG_TARGETS))
+    TX = np.zeros((max_seqlength, n_test, st.N_EMG_SENSORS))
+    TZ = np.zeros((max_seqlength, n_test, st.N_EMG_TARGETS))
     for trial_id in range(len(data)):
         timestep = 0
         for sensor_set in data[trial_id]['emg_target'].iteritems():
             if trial_id < n_train:
                 X[timestep, trial_id, ...] = sensor_set[1][0:st.N_EMG_SENSORS]
                 Z[timestep, trial_id, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS+st.N_EMG_TARGETS]
-            else:
+            elif trial_id < n_train + n_val:
                 VX[timestep, trial_id-n_train, ...] = sensor_set[1][0:st.N_EMG_SENSORS]
                 VZ[timestep, trial_id-n_train, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_EMG_TARGETS]
+            else:
+                TX[timestep, trial_id - n_train - n_val, ...] = sensor_set[1][0:st.N_EMG_SENSORS]
+                TZ[timestep, trial_id - n_train - n_val, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_EMG_TARGETS]
             timestep += 1
 
     # subsample
     if subsample > 0:
+        print('[*] Subsampling with factor %d' %(subsample))
         #for i in range(0, len(X), subsample):
         #    X[i] = np.average(X[i:i+subsample-1])
 
@@ -79,26 +93,45 @@ def get_shaped_input(participant, series, subsample=0):
 
         VX = VX[::subsample]
         VZ = VZ[::subsample]
+
+        # for i in range(0, len(TX), subsample):
+        #    TX[i] = np.average(TX[i:i + subsample - 1])
+
+        TX = TX[::subsample]
+        TZ = TZ[::subsample]
+
         seqlength = seqlength/subsample
-        time_win_train = time_win_train/subsample
-        time_win_val = time_win_val/subsample
+        seqlength_mod = seqlength % st.STRIDE_LEN
+        seqlength -= seqlength_mod
+        #time_win_train = time_win_train/subsample
+        #time_win_val = time_win_val/subsample
+
+    print('[*] Seqlenght: ' + str(seqlength))
 
     # cut data to smallest overlap (along time axis)
     X_trim = X[:seqlength]
-    sX = X_trim.transpose(1,0,2).reshape((time_win_train, st.STRIDE_LEN, st.N_EMG_SENSORS)).transpose(1,0,2)
+    sX = X_trim.transpose(1, 0, 2).reshape((-1, st.STRIDE_LEN, st.N_EMG_SENSORS)).transpose(1, 0, 2)
 
     Z_trim = Z[:seqlength]
-    sZ = Z_trim.transpose(1,0,2).reshape((time_win_train, st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1,0,2)
+    sZ = Z_trim.transpose(1, 0, 2).reshape((-1, st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1, 0, 2)
 
     VX_trim = VX[:seqlength]
-    print VX_trim.shape
-    sVX = VX_trim.transpose(1,0,2).reshape((time_win_val, st.STRIDE_LEN, st.N_EMG_SENSORS)).transpose(1,0,2)
-    print sVX.shape
+    #print VX_trim.shape
+    sVX = VX_trim.transpose(1, 0, 2).reshape((-1, st.STRIDE_LEN, st.N_EMG_SENSORS)).transpose(1, 0, 2)
+    #print sVX.shape
 
     VZ_trim = VZ[:seqlength]
-    sVZ = VZ_trim.transpose(1,0,2).reshape((time_win_val, st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1,0,2)
+    sVZ = VZ_trim.transpose(1, 0, 2).reshape((-1, st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1, 0, 2)
 
-    return sX, sZ, sVX, sVZ, seqlength, eventNames
+    TX = TX[:seqlength]
+    TZ = TZ[:seqlength]
+
+    print('[*] Shape Training Set X: ' + str(sX.shape))
+    print('[*] Shape Validation Set X: ' + str(sVX.shape))
+    print('[*] Shape Test Set X: ' + str(TX.shape))
+
+    return sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames
+
 
 def test_RNN(n_layers = 1, batch_size = 50):
     #optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
@@ -127,7 +160,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
         return nll / n_time_steps
     '''
 
-    sX, sZ, sVX, sVZ, seqlength, eventNames = get_shaped_input(1, 1, subsample=10)
+    sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames = get_shaped_input(1, 1, subsample=9)
 
     imp_weights_skip = 150
     W = np.ones_like(sZ)
@@ -159,8 +192,10 @@ def test_RNN(n_layers = 1, batch_size = 50):
         figure, (axes) = plt.subplots(2, 1)
         x_axis = np.arange(seqlength)
 
-        input_for_plot = sVX.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_SENSORS)).transpose(1,0,2)[:, 0:1, :]
-        target_for_plot = sVZ.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_TARGETS)).transpose(1,0,2)[:, 0:1, :]
+        #input_for_plot = sVX.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_SENSORS)).transpose(1,0,2)[:, 0:1, :]
+        #target_for_plot = sVZ.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_TARGETS)).transpose(1,0,2)[:, 0:1, :]
+        input_for_plot = TX[:, 1:2, :]
+        target_for_plot = TZ[:, 1:2, :]
         result = m.predict(input_for_plot)
 
         for i in range(st.N_EMG_TARGETS):
@@ -210,5 +245,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
                 filtered_info[key] = float(filtered_info[key])
         infos.append(filtered_info)
 
-        m.parameters.data[...] = info['best_pars']
         plot()
+
+    m.parameters.data[...] = info['best_pars']
+    plot()
