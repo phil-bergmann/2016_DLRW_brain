@@ -49,14 +49,6 @@ def get_shaped_input(participant, series, subsample=0):
     min_seqlength = min(len_arr)
     print('[*] min seqlength: %i' % min_seqlength)
 
-
-    #seqlen_mod_300 = min_seqlength % st.STRIDE_LEN
-    #seqlength = min_seqlength - seqlen_mod_300
-    #print('seqlength: %i' % seqlength)
-    #time_win_train = int(np.floor(seqlength * n_train / st.STRIDE_LEN))   # 33000*22/300 = 2420
-    #print('time_win: %i' % time_win_train)
-    #time_win_val = int(np.floor(seqlength * n_val / st.STRIDE_LEN))    # 33000*12/300 = 1320
-    #print('time_win_val: %i' % time_win_val)
     seqlength = min_seqlength
 
     X = np.zeros((max_seqlength, n_train, st.N_EMG_SENSORS))
@@ -82,29 +74,20 @@ def get_shaped_input(participant, series, subsample=0):
     # subsample
     if subsample > 0:
         print('[*] Subsampling with factor %d' %(subsample))
-        #for i in range(0, len(X), subsample):
-        #    X[i] = np.average(X[i:i+subsample-1])
 
         X = X[::subsample]
         Z = Z[::subsample]
 
-        #for i in range(0, len(VX), subsample):
-        #    VX[i] = np.average(VX[i:i + subsample - 1])
-
         VX = VX[::subsample]
         VZ = VZ[::subsample]
-
-        # for i in range(0, len(TX), subsample):
-        #    TX[i] = np.average(TX[i:i + subsample - 1])
 
         TX = TX[::subsample]
         TZ = TZ[::subsample]
 
+
         seqlength = seqlength/subsample
         seqlength_mod = seqlength % st.STRIDE_LEN
         seqlength -= seqlength_mod
-        #time_win_train = time_win_train/subsample
-        #time_win_val = time_win_val/subsample
 
     print('[*] Seqlenght: ' + str(seqlength))
 
@@ -116,9 +99,7 @@ def get_shaped_input(participant, series, subsample=0):
     sZ = Z_trim.transpose(1, 0, 2).reshape((-1, st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1, 0, 2)
 
     VX_trim = VX[:seqlength]
-    #print VX_trim.shape
     sVX = VX_trim.transpose(1, 0, 2).reshape((-1, st.STRIDE_LEN, st.N_EMG_SENSORS)).transpose(1, 0, 2)
-    #print sVX.shape
 
     VZ_trim = VZ[:seqlength]
     sVZ = VZ_trim.transpose(1, 0, 2).reshape((-1, st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1, 0, 2)
@@ -160,7 +141,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
         return nll / n_time_steps
     '''
 
-    sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames = get_shaped_input(1, 1, subsample=9)
+    sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames = get_shaped_input(1, 1, subsample=10)
 
     imp_weights_skip = 150
     W = np.ones_like(sZ)
@@ -172,7 +153,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
     #climin.initialize.bound_spectral_radius(m.parameters.data)
 
     max_passes = 100
-    max_minutes = 60
+    max_minutes = 10
     max_iter = max_passes * sX.shape[1] / m.batch_size
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
     pause = climin.stops.ModuloNIterations(batches_per_pass * 1)
@@ -201,7 +182,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
         for i in range(st.N_EMG_TARGETS):
 
             axes[0].set_title('TARGETS')
-            axes[0].fill_between(x_axis, 0 , target_for_plot[:, 0, i], facecolor=colors[i], alpha=0.8,
+            axes[0].fill_between(x_axis, 0, target_for_plot[:, 0, i], facecolor=colors[i], alpha=0.8,
                                  label=eventNames[st.SEQ_EMG_TARGETS.index(i)])
             #axes[0].plot(x_axis, target_for_plot[:, 0, i])
             axes[1].set_title('RNN')
