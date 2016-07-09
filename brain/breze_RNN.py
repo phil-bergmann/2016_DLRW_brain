@@ -107,12 +107,16 @@ def get_shaped_input(participant, series, subsample=0):
     VZ_trim = VZ[:seqlength]
     sVZ = VZ_trim.transpose(1, 0, 2).reshape((-1, st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1, 0, 2)
 
-    TX = TX[:seqlength]
-    TZ = TZ[:seqlength]
+    # No need to trim test
+    # TX = TX[:seqlength]
+    # TZ = TZ[:seqlength]
 
     print('[*] Shape Training Set X: ' + str(sX.shape))
+    print('[*] Shape Training Set Z: ' + str(sZ.shape))
     print('[*] Shape Validation Set X: ' + str(sVX.shape))
+    print('[*] Shape Validation Set Z: ' + str(sVZ.shape))
     print('[*] Shape Test Set X: ' + str(TX.shape))
+    print('[*] Shape Test Set Z: ' + str(TZ.shape))
 
     return sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames
 
@@ -168,13 +172,20 @@ def test_RNN(n_neurons=100, batch_size = 50, participant=[1, 2], series=[1, 2], 
     def plot(test_sample=0, save_name='test.png'):
         colors = ['blue', 'red', 'green', 'cyan', 'magenta']
         figure, (axes) = plt.subplots(3, 1)
-        x_axis = np.arange(seqlength)
+
+
 
         #input_for_plot = sVX.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_SENSORS)).transpose(1,0,2)[:, 0:1, :]
         #target_for_plot = sVZ.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_TARGETS)).transpose(1,0,2)[:, 0:1, :]
+
         input_for_plot = TX[:, test_sample:test_sample+1, :]
-        target_for_plot = TZ[:, test_sample:test_sample+1, :]
+        # to be able to plot the test samples in correct length we have to determine where the '0' padding starts
+        sample_length = min(np.where(input_for_plot == np.zeros((st.N_EMG_TARGETS)))[0])
+        input_for_plot = input_for_plot[:sample_length]
+        target_for_plot = TZ[:sample_length, test_sample:test_sample+1, :]
         result = m.predict(input_for_plot)
+
+        x_axis = np.arange(input_for_plot.shape[0])
 
         for i in range(st.N_EMG_TARGETS):
 
