@@ -215,7 +215,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
         climin.stops.TimeElapsed(max_minutes * 60),  # maximal time in seconds
         climin.stops.AfterNIterations(max_iter),  # maximal iterations
         climin.stops.Patience('val_loss', 1000, grow_factor=1.1, threshold=0.0001),  # kind of early stopping
-        climin.stops.NotBetterThanAfter(30, 100),  # error under 30 after 100 iterations?
+        # climin.stops.NotBetterThanAfter(30, 100),  # error under 30 after 100 iterations?
     ])
 
     start = time.time()
@@ -230,9 +230,6 @@ def test_RNN(n_layers = 1, batch_size = 50):
         info['loss'] = float(info['loss'])
         info['val_loss'] = float(info['val_loss'])
         info['test_loss'] = float(ma.scalar(test_loss()))
-
-        #    if info['test_loss'] < 8.58:
-        #        break
 
         info.update({
             'time': time.time() - start,
