@@ -5,7 +5,7 @@ import time
 import numpy as np
 import theano.tensor as T
 
-from data import get_eeg_emg
+from data import get_eeg_emg, load_multiple
 import globals as st
 
 from breze.learn.data import interleave, padzeros, split
@@ -34,7 +34,8 @@ def get_shaped_input(participant, series, subsample=0):
     :param series:
     :return:
     '''
-    data, eventNames = get_eeg_emg(participant, series, "emg")
+    # data, eventNames = get_eeg_emg(participant, series, "emg")
+    data, eventNames = load_multiple(participant, series, 'emg')
     p_train = 0.7
     p_val = 0.15
     n_train = int(len(data) * p_train)
@@ -49,6 +50,7 @@ def get_shaped_input(participant, series, subsample=0):
     max_seqlength = max(len_arr)
     min_seqlength = min(len_arr)
     print('[*] min seqlength: %i' % min_seqlength)
+    print('[*] max seqlength: %i' % max_seqlength)
 
     seqlength = min_seqlength
 
@@ -115,11 +117,11 @@ def get_shaped_input(participant, series, subsample=0):
     return sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames
 
 
-def test_RNN(n_layers = 1, batch_size = 50):
+def test_RNN(n_neurons=100, batch_size = 50, participant=[1, 2], series=[1, 2], subsample=10, n_layers = 1):
     #optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
     optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'step_rate': .1}
     # optimizer = 'adam'
-    n_hiddens = [100] * n_layers
+    n_hiddens = [n_neurons] * n_layers
 
     m = SupervisedRnn(
         st.N_EMG_SENSORS, n_hiddens, st.N_EMG_TARGETS,  out_transfer='sigmoid', loss='bern_ces',
@@ -128,7 +130,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
         imp_weight=True,
         optimizer=optimizer)
 
-    sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames = get_shaped_input(1, 1, subsample=10)
+    sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames = get_shaped_input(participant, series, subsample)
 
     imp_weights_skip = 150
     W = np.ones_like(sZ)
@@ -205,7 +207,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
         plt.close(figure)
 
 
-    max_passes = 2000
+    max_passes = 100
     max_minutes = 60
     max_iter = max_passes * sX.shape[1] / m.batch_size
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))

@@ -332,8 +332,8 @@ def get_eeg_emg(participant, series, data_selector=None):
 
     data (eeg/emg) dicts keys: windowed time in seconds from eeg_t/emg_t tables
 
-    eeg data format: 32 channels + 2 targets
-    emg data format: 5 channels + 2 targets
+    eeg data format: 32 channels + 1-5 targets
+    emg data format: 5 channels + 1-5 targets
 
     targets (time windows):
     1. move hand to target:     tHandStart                  till tHandStart + trial_DurReach (= tFirstDigitTouch)
@@ -442,6 +442,26 @@ def get_eeg_emg(participant, series, data_selector=None):
 
     return data, eventNames
 
+def load_multiple(participant, series, data_selector=None):
+    '''
+    this is a wrapper for load_eeg_emg in order to be able to load more than one person/session at once.
+
+    for more information look at load_emg_emg
+
+    :param participant list e.g. [1, 2, 5]
+    :param series list [1, 2, 3, 7]
+    :param data_selector "eeg", "emg" or None (default), if both data should be loaded.
+
+    :return: list of dicts of eeg, emg data
+    '''
+
+    data = []
+    for p in participant:
+        for s in series:
+            data_tmp, eventNames = get_eeg_emg(p, s, data_selector)
+            data = data + data_tmp
+
+    return data, eventNames
 
 def normalize(data):
     '''
