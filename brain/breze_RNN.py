@@ -155,7 +155,8 @@ def test_RNN(n_layers = 1, batch_size = 50):
     print '\t'.join(header)
 
     def plot():
-        figure, (axes) = plt.subplots(st.N_EMG_TARGETS*2, 1)
+        colors = ['blue', 'red', 'green', 'cyan', 'magenta']
+        figure, (axes) = plt.subplots(2, 1)
         x_axis = np.arange(seqlength)
 
         input_for_plot = sVX.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_SENSORS)).transpose(1,0,2)[:, 0:1, :]
@@ -164,10 +165,14 @@ def test_RNN(n_layers = 1, batch_size = 50):
 
         for i in range(st.N_EMG_TARGETS):
 
-            axes[i*2].set_title(eventNames[st.SEQ_EMG_TARGETS.index(i)] + ' - TARGET')
-            axes[i*2].plot(x_axis, target_for_plot[:, 0, i])
-            axes[i*2 + 1].set_title(eventNames[st.SEQ_EMG_TARGETS.index(i)] + ' - RNN')
-            axes[i*2 + 1].plot(x_axis, result[:, 0, i])
+            axes[0].set_title('TARGETS')
+            axes[0].fill_between(x_axis, 0 , target_for_plot[:, 0, i], facecolor=colors[i], alpha=0.8,
+                                 label=eventNames[st.SEQ_EMG_TARGETS.index(i)])
+            #axes[0].plot(x_axis, target_for_plot[:, 0, i])
+            axes[1].set_title('RNN')
+            axes[1].plot(x_axis, result[:, 0, i], color=colors[i])
+
+        axes[0].legend(loc=0, shadow=True, fontsize='x-small') # loc: 0=best, 1=upper right, 2=upper left
 
         figure.subplots_adjust(hspace=0.5)
         figure.savefig('test.png')
