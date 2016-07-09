@@ -33,7 +33,7 @@ def get_shaped_input(participant, series, subsample=0):
     :param series:
     :return:
     '''
-    data = get_eeg_emg(participant, series, "emg")
+    data, eventNames = get_eeg_emg(participant, series, "emg")
     p_train = 0.66
     n_train = int(len(data) * p_train)
     n_val = len(data) - int(len(data) * p_train)
@@ -98,7 +98,7 @@ def get_shaped_input(participant, series, subsample=0):
     VZ_trim = VZ[:seqlength]
     sVZ = VZ_trim.transpose(1,0,2).reshape((time_win_val, st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1,0,2)
 
-    return sX, sZ, sVX, sVZ, seqlength
+    return sX, sZ, sVX, sVZ, seqlength, eventNames
 
 def test_RNN(n_layers = 1, batch_size = 50):
     #optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
@@ -107,7 +107,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
     n_hiddens = [100] * n_layers
 
     m = SupervisedRnn(
-        5, n_hiddens, 2,  out_transfer='sigmoid', loss='bern_ces',
+        st.N_EMG_SENSORS, n_hiddens, st.N_EMG_TARGETS,  out_transfer='sigmoid', loss='bern_ces',
         hidden_transfers=['tanh'] * n_layers,
         batch_size=batch_size,
         imp_weight=True,
@@ -127,7 +127,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
         return nll / n_time_steps
     '''
 
-    sX, sZ, sVX, sVZ, seqlength = get_shaped_input(1, 1,subsample=10)
+    sX, sZ, sVX, sVZ, seqlength, eventNames = get_shaped_input(1, 1, subsample=10)
 
     imp_weights_skip = 150
     W = np.ones_like(sZ)
@@ -155,21 +155,19 @@ def test_RNN(n_layers = 1, batch_size = 50):
     print '\t'.join(header)
 
     def plot():
-        figure, (axes) = plt.subplots(4, 1)
+        figure, (axes) = plt.subplots(st.N_EMG_TARGETS*2, 1)
         x_axis = np.arange(seqlength)
 
-        input_for_plot = sVX.transpose(1,0,2).reshape((-1, seqlength,st.N_EMG_SENSORS)).transpose(1,0,2)[:, 0:1, :]
-        target_for_plot = sVZ.transpose(1,0,2).reshape((-1, seqlength,st.N_EMG_TARGETS)).transpose(1,0,2)[:, 0:1, :]
+        input_for_plot = sVX.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_SENSORS)).transpose(1,0,2)[:, 0:1, :]
+        target_for_plot = sVZ.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_TARGETS)).transpose(1,0,2)[:, 0:1, :]
         result = m.predict(input_for_plot)
 
-        axes[0].set_title("hand_move_target")
-        axes[0].plot(x_axis, target_for_plot[:, 0, 0])
-        axes[1].set_title("grasp_target")
-        axes[1].plot(x_axis, target_for_plot[:, 0, 1])
-        axes[2].set_title("hand_move_rnn")
-        axes[2].plot(x_axis, result[:, 0, 0])
-        axes[3].set_title("grasp_rnn")
-        axes[3].plot(x_axis, result[:, 0, 1])
+        for i in range(st.N_EMG_TARGETS):
+
+            axes[i*2].set_title(eventNames[st.SEQ_EEG_TARGETS.index(i)] + ' - TARGET')
+            axes[i*2].plot(x_axis, target_for_plot[:, 0, i])
+            axes[i*2 + 1].set_title(eventNames[st.SEQ_EEG_TARGETS.index(i)] + ' - RNN')
+            axes[i*2 + 1].plot(x_axis, result[:, 0, i])
 
         figure.subplots_adjust(hspace=0.5)
         figure.savefig('test.png')
