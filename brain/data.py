@@ -336,8 +336,11 @@ def get_eeg_emg(participant, series, data_selector=None):
     emg data format: 5 channels + 2 targets
 
     targets (time windows):
-    1. hand move window:    tHandStart                  till tHandStart + trial_DurReach
-    2. grasp:               tHandStart + trial_DurReach till tLiftOff (including: DurPreload)
+    1. move hand to target:     tHandStart                  till tHandStart + trial_DurReach (= tFirstDigitTouch)
+    2. lift object:             tLiftOff                    till LEDOff - 2
+    3. hold phase:              LEDOff - 2                  till LEDOff
+    4. replace object:          LEDOff                      till tReplace
+    5. move hand to start:      tBothRelease                till tHandStop
 
     :param participant e.g. 1, [0-9]
     :param series e.g. 1, [0-9]
@@ -345,6 +348,9 @@ def get_eeg_emg(participant, series, data_selector=None):
 
     :return: list of dicts of eeg, emg data
     '''
+
+    eventNames = ['move hand to target', 'lift object', 'hold phase', 'replace object', 'move hand to start']
+
     allTrials = []
     allLifts = getRaw(r'P'+str(participant)+'_AllLifts.mat')[0].get('P')
     allLifts_colNames = allLifts.get('ColNames')
@@ -358,12 +364,16 @@ def get_eeg_emg(participant, series, data_selector=None):
     # trial_id = 0
     # win = ws_data[0]
 
-        trial_tHandStart = allTrials[trial_id].get('tHandStart')
-        trial_DurReach = allTrials[trial_id].get('Dur_Reach')
-        trial_DurPreload = allTrials[trial_id].get('Dur_Preload')
-        trial_tLiftOff = allTrials[trial_id].get('tLiftOff')
-        tGrasp_start = trial_tHandStart + trial_DurReach
-        tGrasp_end = trial_tLiftOff #tGrasp_start + trial_DurPreload
+        tHandStart = allTrials[trial_id].get('tHandStart')
+        tLiftOff = allTrials[trial_id].get('tLiftOff')
+        LEDOff = allTrials[trial_id].get('LEDOff')
+        tReplace = allTrials[trial_id].get('tReplace')
+        tBothReleased = allTrials[trial_id].get('tBothReleased')
+        tHandStop = allTrials[trial_id].get('tHandStop')
+        tFirstDigitTouch = allTrials[trial_id].get('tFirstDigitTouch')
+        # DurReach = allTrials[trial_id].get('Dur_Reach')
+        # DurPreload = allTrials[trial_id].get('Dur_Preload')
+        # tGrasp_start = tHandStart + DurReach
 
         eeg_dict = None
         if data_selector == None or data_selector == "eeg":
@@ -380,10 +390,17 @@ def get_eeg_emg(participant, series, data_selector=None):
                 key = item[0]
 
                 item[1][st.N_EEG_SENSORS: st.N_EEG_SENSORS + st.N_EEG_TARGETS] = 0
-                if key > trial_tHandStart and key < trial_tHandStart + trial_DurReach:
-                    item[1][st.N_EEG_SENSORS] = 1
-                elif key > tGrasp_start and key < tGrasp_end:
-                    item[1][st.N_EEG_SENSORS+1] = 1
+                if key > tHandStart and key < tFirstDigitTouch and st.SEQ_EEG_TARGETS[0] != -1:
+                    item[1][st.N_EEG_SENSORS + st.SEQ_EEG_TARGETS[0]] = 1
+                if key > tLiftOff and key < LEDOff - 2 and st.SEQ_EEG_TARGETS[1] != -1:
+                    item[1][st.N_EEG_SENSORS + st.SEQ_EEG_TARGETS[1]] = 1
+                if key > LEDOff - 2 and key < LEDOff and st.SEQ_EEG_TARGETS[2] != -1:
+                    item[1][st.N_EEG_SENSORS + st.SEQ_EEG_TARGETS[2]] = 1
+                if key > LEDOff and key < tReplace and st.SEQ_EEG_TARGETS[3] != -1:
+                    item[1][st.N_EEG_SENSORS + st.SEQ_EEG_TARGETS[3]] = 1
+                if key > tBothReleased and key < tHandStop and st.SEQ_EEG_TARGETS[4] != -1:
+                    item[1][st.N_EEG_SENSORS + st.SEQ_EEG_TARGETS[4]] = 1
+
 
         # eeg_target_vec = np.asarray([item[32:] for item in eeg_dict.itervalues()])
         # xaxis = range(len(eeg_target_vec))
@@ -391,7 +408,7 @@ def get_eeg_emg(participant, series, data_selector=None):
         # plt.plot(xaxis, eeg_target_vec[:,1])
         # plt.show()
 
-        emg_dict= None
+        emg_dict = None
         if data_selector == None or data_selector == "emg":
             e = win.get('emg')
             emg_seqlenght = e.shape[0]
@@ -406,16 +423,24 @@ def get_eeg_emg(participant, series, data_selector=None):
                 key = item[0]
 
                 item[1][st.N_EMG_SENSORS: st.N_EMG_SENSORS+st.N_EMG_TARGETS] = 0
-                if key > trial_tHandStart and key < trial_tHandStart + trial_DurReach:
-                    item[1][st.N_EMG_SENSORS] = 1
-                elif key > tGrasp_start and key < tGrasp_end:
-                    item[1][st.N_EMG_SENSORS+1] = 1
+                if key > tHandStart and key < tFirstDigitTouch and st.SEQ_EMG_TARGETS[0] != -1:
+                    item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[0]] = 1
+                if key > tLiftOff and key < LEDOff - 2 and st.SEQ_EMG_TARGETS[1] != -1:
+                    item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[1]] = 1
+                if key > LEDOff - 2 and key < LEDOff and st.SEQ_EMG_TARGETS[2] != -1:
+                    item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[2]] = 1
+                if key > LEDOff and key < tReplace and st.SEQ_EMG_TARGETS[3] != -1:
+                    item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[3]] = 1
+                if key > tBothReleased and key < tHandStop and st.SEQ_EMG_TARGETS[4] != -1:
+                    item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[4]] = 1
+
 
         data.append({'trial_id': trial_id, 'eeg_target': eeg_dict, 'emg_target': emg_dict,
-                     'tHandStart': trial_tHandStart, 'tLiftOff': trial_tLiftOff,
-                     'DurReach': trial_DurReach, 'Dur_Preload': trial_DurPreload})
+                     'tHandStart': tHandStart, 'tLiftOff': tLiftOff, 'tBothReleased': tBothReleased,
+                     'LEDOff': LEDOff, 'tReplace': tReplace, 'tHandStop': tHandStop,
+                     'tFirstDigitTouch': tFirstDigitTouch})
 
-    return data
+    return data, eventNames
 
 
 def normalize(data):
