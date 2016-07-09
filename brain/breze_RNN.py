@@ -158,10 +158,11 @@ def test_RNN(n_layers = 1, batch_size = 50):
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
     pause = climin.stops.ModuloNIterations(batches_per_pass * 1)
 
+
     stop = climin.stops.Any([
-        climin.stops.TimeElapsed(max_minutes * 60),
-        # climin.stops.patience('val_loss', 1000, grow_factor=1.1, threshold=0.0001),
-        climin.stops.NotBetterThanAfter(30, 100),
+        climin.stops.TimeElapsed(max_minutes * 60), # maximal time in seconds
+        # climin.stops.patience('val_loss', 1000, grow_factor=1.1, threshold=0.0001), # kind of early stopping
+        climin.stops.NotBetterThanAfter(30, 100), # error under 30 after 100 iterations?
     ])
 
     start = time.time()
@@ -194,12 +195,10 @@ def test_RNN(n_layers = 1, batch_size = 50):
         figure.savefig('test.png')
         plt.close(figure)
 
-    def report(info):
-        #print(info)
-        return True
 
     infos = []
-    for i, info in enumerate(m.powerfit((sX, sZ, W), (sVX, sVZ, WV), stop=stop, report=report, eval_train_loss=True)):
+    for i, info in enumerate(m.powerfit((sX, sZ, W), (sVX, sVZ, WV), stop=stop,
+                                        report=pause, eval_train_loss=True)):
         info['loss'] = float(info['loss'])
         # info['val_loss'] = float(info['val_loss'])
         info['test_loss'] = 100#float(ma.scalar(test_nll()))
@@ -226,7 +225,8 @@ def test_RNN(n_layers = 1, batch_size = 50):
                 filtered_info[key] = float(filtered_info[key])
         infos.append(filtered_info)
 
-        plot()
+        #plot()
+
 
     m.parameters.data[...] = info['best_pars']
     plot()
