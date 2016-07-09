@@ -164,9 +164,9 @@ def test_RNN(n_layers = 1, batch_size = 50):
 
         for i in range(st.N_EMG_TARGETS):
 
-            axes[i*2].set_title(eventNames[st.SEQ_EEG_TARGETS.index(i)] + ' - TARGET')
+            axes[i*2].set_title(eventNames[st.SEQ_EMG_TARGETS.index(i)] + ' - TARGET')
             axes[i*2].plot(x_axis, target_for_plot[:, 0, i])
-            axes[i*2 + 1].set_title(eventNames[st.SEQ_EEG_TARGETS.index(i)] + ' - RNN')
+            axes[i*2 + 1].set_title(eventNames[st.SEQ_EMG_TARGETS.index(i)] + ' - RNN')
             axes[i*2 + 1].plot(x_axis, result[:, 0, i])
 
         figure.subplots_adjust(hspace=0.5)
