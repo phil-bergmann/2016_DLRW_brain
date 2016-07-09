@@ -18,6 +18,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import collections
+from random import shuffle as shuf
 
 import scipy.io as spio
 import scipy
@@ -442,7 +443,7 @@ def get_eeg_emg(participant, series, data_selector=None):
 
     return data, eventNames
 
-def load_multiple(participant, series, data_selector=None):
+def load_multiple(participant, series, data_selector=None, shuffle=True):
     '''
     this is a wrapper for load_eeg_emg in order to be able to load more than one person/session at once.
 
@@ -451,6 +452,7 @@ def load_multiple(participant, series, data_selector=None):
     :param participant list e.g. [1, 2, 5]
     :param series list [1, 2, 3, 7]
     :param data_selector "eeg", "emg" or None (default), if both data should be loaded.
+    :param shuffle determines if data should be shuffled randomly
 
     :return: list of dicts of eeg, emg data
     '''
@@ -460,6 +462,9 @@ def load_multiple(participant, series, data_selector=None):
         for s in series:
             data_tmp, eventNames = get_eeg_emg(p, s, data_selector)
             data = data + data_tmp
+
+    if shuffle:
+        shuf(data)
 
     return data, eventNames
 
