@@ -265,4 +265,8 @@ def test_RNN(n_neurons=100, batch_size = 50, participant=[1, 2], series=[1, 2], 
 
 
     m.parameters.data[...] = info['best_pars']
-    plot()
+    plot(0, 'emg_test0.png')
+    plot(1, 'emg_test1.png')
+    plot(2, 'emg_test2.png')
+    plot(3, 'emg_test3.png')
+    plot(4, 'emg_test4.png')
