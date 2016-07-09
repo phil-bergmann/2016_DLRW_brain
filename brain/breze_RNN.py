@@ -152,32 +152,15 @@ def test_RNN(n_layers = 1, batch_size = 50):
     climin.initialize.randomize_normal(m.parameters.data, 0, 0.1)
     #climin.initialize.bound_spectral_radius(m.parameters.data)
 
-    max_passes = 100
-    max_minutes = 10
-    max_iter = max_passes * sX.shape[1] / m.batch_size
-    batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
-    pause = climin.stops.ModuloNIterations(batches_per_pass * 1)
-
-
-    stop = climin.stops.Any([
-        climin.stops.TimeElapsed(max_minutes * 60), # maximal time in seconds
-        # climin.stops.patience('val_loss', 1000, grow_factor=1.1, threshold=0.0001), # kind of early stopping
-        climin.stops.NotBetterThanAfter(30, 100), # error under 30 after 100 iterations?
-    ])
-
-    start = time.time()
-    header = '#', 'seconds', 'loss', 'val loss', 'test loss'
-    print '\t'.join(header)
-
-    def plot():
+    def plot(test_sample=0, save_name='test.png'):
         colors = ['blue', 'red', 'green', 'cyan', 'magenta']
-        figure, (axes) = plt.subplots(2, 1)
+        figure, (axes) = plt.subplots(3, 1)
         x_axis = np.arange(seqlength)
 
         #input_for_plot = sVX.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_SENSORS)).transpose(1,0,2)[:, 0:1, :]
         #target_for_plot = sVZ.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_TARGETS)).transpose(1,0,2)[:, 0:1, :]
-        input_for_plot = TX[:, 1:2, :]
-        target_for_plot = TZ[:, 1:2, :]
+        input_for_plot = TX[:, test_sample:test_sample+1, :]
+        target_for_plot = TZ[:, test_sample:test_sample+1, :]
         result = m.predict(input_for_plot)
 
         for i in range(st.N_EMG_TARGETS):
@@ -189,18 +172,50 @@ def test_RNN(n_layers = 1, batch_size = 50):
             axes[1].set_title('RNN')
             axes[1].plot(x_axis, result[:, 0, i], color=colors[i])
 
-        axes[0].legend(loc=0, shadow=True, fontsize='x-small') # loc: 0=best, 1=upper right, 2=upper left
+        train_loss = []
+        val_loss = []
+        test_loss = []
+        for i in infos:
+            train_loss.append(i['loss'])
+            val_loss.append(i['val_loss'])
+            test_loss.append(i['test_loss'])
+
+        axes[2].plot(np.arange(len(infos)), train_loss, label='train loss')
+        axes[2].plot(np.arange(len(infos)), val_loss, label='validation loss')
+        axes[2].plot(np.arange(len(infos)), test_loss, label='test loss')
+
+        axes[0].legend(loc=0, shadow=True, fontsize='x-small')  # loc: 0=best, 1=upper right, 2=upper left
+
+        axes[2].legend(loc=0, shadow=True, fontsize='x-small')
 
         figure.subplots_adjust(hspace=0.5)
-        figure.savefig('test.png')
+        figure.savefig(save_name)
         plt.close(figure)
+
+
+    max_passes = 100
+    max_minutes = 10
+    max_iter = max_passes * sX.shape[1] / m.batch_size
+    batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
+    pause = climin.stops.ModuloNIterations(batches_per_pass * 1)  # after each pass through all data
+
+    stop = climin.stops.Any([
+        climin.stops.TimeElapsed(max_minutes * 60),  # maximal time in seconds
+        # climin.stops.patience('val_loss', 1000, grow_factor=1.1, threshold=0.0001), # kind of early stopping
+        climin.stops.NotBetterThanAfter(30, 100),  # error under 30 after 100 iterations?
+    ])
+
+    start = time.time()
+    header = '#', 'seconds', 'loss', 'val loss', 'test loss'
+    print '\t'.join(header)
 
 
     infos = []
     for i, info in enumerate(m.powerfit((sX, sZ, W), (sVX, sVZ, WV), stop=stop,
                                         report=pause, eval_train_loss=True)):
+
         info['loss'] = float(info['loss'])
-        # info['val_loss'] = float(info['val_loss'])
+        info['val_loss'] = float(info['val_loss'])
         info['test_loss'] = 100#float(ma.scalar(test_nll()))
 
         #    if info['test_loss'] < 8.58:
@@ -224,8 +239,6 @@ def test_RNN(n_layers = 1, batch_size = 50):
             if isinstance(filtered_info[key], np.float32):
                 filtered_info[key] = float(filtered_info[key])
         infos.append(filtered_info)
-
-        #plot()
 
 
     m.parameters.data[...] = info['best_pars']
