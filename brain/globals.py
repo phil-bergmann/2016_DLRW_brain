@@ -8,12 +8,12 @@ N_P_FILES = 12
 N_EEG_SENSORS = 32
 N_EMG_SENSORS = 5
 
-# defines which events to select and their sequence (0: deactivated, 1: First, 2: Second, ...)
-SEQ_EMG_TARGETS = [1, 0, 0, 0, 2]
+# defines which events to select and their sequence (-1: deactivated, 0: First, 1: Second, ...)
+SEQ_EMG_TARGETS = [0, -1, -1, -1, 1]
 N_EMG_TARGETS = 2
 
-# defines which events to select and their sequence (0: deactivated, 1: First, 2: Second, ...)
-SEQ_EEG_TARGETS = [1, 2, 0, 0, 0]
+# defines which events to select and their sequence (-1: deactivated, 0: First, 1: Second, ...)
+SEQ_EEG_TARGETS = [0, 1, -1, -1, -1]
 N_EEG_TARGETS = 2
 
 
