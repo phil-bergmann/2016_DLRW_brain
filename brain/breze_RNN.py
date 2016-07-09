@@ -12,6 +12,7 @@ from breze.learn.data import interleave, padzeros, split
 from breze.learn import base
 from breze.learn.rnn import SupervisedFastDropoutRnn, SupervisedRnn
 import breze.learn.display as D
+from breze.arch.component.loss import bern_ces
 
 import climin.initialize
 import climin.stops
@@ -127,11 +128,27 @@ def test_RNN(n_layers = 1, batch_size = 50):
         imp_weight=True,
         optimizer=optimizer)
 
+    sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames = get_shaped_input(1, 1, subsample=10)
+
+    imp_weights_skip = 150
+    W = np.ones_like(sZ)
+    WV = np.ones_like(sVZ)
+    WT = np.ones_like(TX)
+    W[:imp_weights_skip, :, :] = 0
+    WV[:imp_weights_skip, :, :] = 0
+    WT[:imp_weights_skip, :, :] = 0
+
+
     m.exprs['true_loss'] = m.exprs['loss']
+    # TODO: Test Loss: Doesn't work, don't know why, trying a hacky workaround in test_loss() - don't know if right this way
+    #f_loss = m.function(['inpt', 'target', 'imp_weight'], 'true_loss')
+    #print(f_loss([TX[:, :, :], TZ[:, :, :]]))
+    #print(m.score(TX[:,0:1,:], TZ[:,0:1,:], WT[:,0:1,:]))  # similar error...
+
+    def test_loss():
+        return bern_ces(m.predict(TX)[:imp_weights_skip, :, :], TZ[:imp_weights_skip, :, :]).eval().mean()
 
     '''
-    f_loss = m.function(['inpt', 'target'], 'true_loss')
-
     def test_nll():
         nll = 0
         n_time_steps = 0
@@ -141,13 +158,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
         return nll / n_time_steps
     '''
 
-    sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames = get_shaped_input(1, 1, subsample=10)
 
-    imp_weights_skip = 150
-    W = np.ones_like(sZ)
-    WV = np.ones_like(sVZ)
-    W[:imp_weights_skip, :, :] = 0
-    WV[:imp_weights_skip, :, :] = 0
 
     climin.initialize.randomize_normal(m.parameters.data, 0, 0.1)
     #climin.initialize.bound_spectral_radius(m.parameters.data)
@@ -180,6 +191,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
             val_loss.append(i['val_loss'])
             test_loss.append(i['test_loss'])
 
+        axes[2].set_title('LOSSES')
         axes[2].plot(np.arange(len(infos)), train_loss, label='train loss')
         axes[2].plot(np.arange(len(infos)), val_loss, label='validation loss')
         axes[2].plot(np.arange(len(infos)), test_loss, label='test loss')
@@ -193,15 +205,16 @@ def test_RNN(n_layers = 1, batch_size = 50):
         plt.close(figure)
 
 
-    max_passes = 100
-    max_minutes = 10
+    max_passes = 2000
+    max_minutes = 60
     max_iter = max_passes * sX.shape[1] / m.batch_size
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
-    pause = climin.stops.ModuloNIterations(batches_per_pass * 1)  # after each pass through all data
+    pause = climin.stops.ModuloNIterations(batches_per_pass * 2)  # after each pass through all data
 
     stop = climin.stops.Any([
         climin.stops.TimeElapsed(max_minutes * 60),  # maximal time in seconds
-        # climin.stops.patience('val_loss', 1000, grow_factor=1.1, threshold=0.0001), # kind of early stopping
+        climin.stops.AfterNIterations(max_iter),  # maximal iterations
+        climin.stops.Patience('val_loss', 1000, grow_factor=1.1, threshold=0.0001),  # kind of early stopping
         climin.stops.NotBetterThanAfter(30, 100),  # error under 30 after 100 iterations?
     ])
 
@@ -216,7 +229,7 @@ def test_RNN(n_layers = 1, batch_size = 50):
 
         info['loss'] = float(info['loss'])
         info['val_loss'] = float(info['val_loss'])
-        info['test_loss'] = 100#float(ma.scalar(test_nll()))
+        info['test_loss'] = float(ma.scalar(test_loss()))
 
         #    if info['test_loss'] < 8.58:
         #        break
