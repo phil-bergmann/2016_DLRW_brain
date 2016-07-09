@@ -107,7 +107,7 @@ def get_shaped_input(participant, series, subsample=0):
     VZ_trim = VZ[:seqlength]
     sVZ = VZ_trim.transpose(1, 0, 2).reshape((-1, st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1, 0, 2)
 
-    # No need to trim test
+    # No need to trim test set here
     # TX = TX[:seqlength]
     # TZ = TZ[:seqlength]
 
@@ -121,7 +121,8 @@ def get_shaped_input(participant, series, subsample=0):
     return sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames
 
 
-def test_RNN(n_neurons=100, batch_size = 50, participant=[1, 2], series=[1, 2], subsample=10, n_layers = 1):
+def test_RNN(n_neurons=100, batch_size=50, participant=[1, 2], series=[1, 2], subsample=10,
+             imp_weights_skip=150, n_layers=1):
     #optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
     optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'step_rate': .1}
     # optimizer = 'adam'
@@ -136,7 +137,6 @@ def test_RNN(n_neurons=100, batch_size = 50, participant=[1, 2], series=[1, 2], 
 
     sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames = get_shaped_input(participant, series, subsample)
 
-    imp_weights_skip = 150
     W = np.ones_like(sZ)
     WV = np.ones_like(sVZ)
     WT = np.ones_like(TX)
@@ -147,12 +147,16 @@ def test_RNN(n_neurons=100, batch_size = 50, participant=[1, 2], series=[1, 2], 
 
     m.exprs['true_loss'] = m.exprs['loss']
     # TODO: Test Loss: Doesn't work, don't know why, trying a hacky workaround in test_loss() - don't know if right this way
-    #f_loss = m.function(['inpt', 'target', 'imp_weight'], 'true_loss')
-    #print(f_loss([TX[:, :, :], TZ[:, :, :]]))
-    #print(m.score(TX[:,0:1,:], TZ[:,0:1,:], WT[:,0:1,:]))  # similar error...
+    # f_loss = m.function(['inpt', 'target', 'imp_weight'], 'true_loss')
+    # print(f_loss([TX[:, :, :], TZ[:, :, :]]))
+    # print(m.score(TX[:,0:1,:], TZ[:,0:1,:], WT[:,0:1,:]))  # similar error...
 
+    # bern_ces changes the prediction!!! *facepalm*
+    # ... just be careful to call it with a copy of the array
     def test_loss():
-        return bern_ces(m.predict(TX)[:imp_weights_skip, :, :], TZ[:imp_weights_skip, :, :]).eval().mean()
+        return bern_ces(m.predict(TX)[:imp_weights_skip, :seqlength, :],
+                        np.copy(TZ[:imp_weights_skip, :seqlength, :])).eval().mean()
+
 
     '''
     def test_nll():
@@ -165,14 +169,12 @@ def test_RNN(n_neurons=100, batch_size = 50, participant=[1, 2], series=[1, 2], 
     '''
 
 
-
     climin.initialize.randomize_normal(m.parameters.data, 0, 0.1)
     #climin.initialize.bound_spectral_radius(m.parameters.data)
 
-    def plot(test_sample=0, save_name='test.png'):
+    def plot(test_sample=0, save_name='test.png', test_loss=None):
         colors = ['blue', 'red', 'green', 'cyan', 'magenta']
         figure, (axes) = plt.subplots(3, 1)
-
 
 
         #input_for_plot = sVX.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_SENSORS)).transpose(1,0,2)[:, 0:1, :]
@@ -193,7 +195,10 @@ def test_RNN(n_neurons=100, batch_size = 50, participant=[1, 2], series=[1, 2], 
             axes[0].fill_between(x_axis, 0, target_for_plot[:, 0, i], facecolor=colors[i], alpha=0.8,
                                  label=eventNames[st.SEQ_EMG_TARGETS.index(i)])
             #axes[0].plot(x_axis, target_for_plot[:, 0, i])
-            axes[1].set_title('RNN')
+            if test_loss:
+                axes[1].set_title('RNN (overall test loss: %f)' %(test_loss))
+            else:
+                axes[1].set_title('RNN')
             axes[1].plot(x_axis, result[:, 0, i], color=colors[i])
 
         train_loss = []
@@ -222,7 +227,7 @@ def test_RNN(n_neurons=100, batch_size = 50, participant=[1, 2], series=[1, 2], 
     max_minutes = 60
     max_iter = max_passes * sX.shape[1] / m.batch_size
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
-    pause = climin.stops.ModuloNIterations(batches_per_pass * 2)  # after each pass through all data
+    pause = climin.stops.ModuloNIterations(batches_per_pass * 1)  # after each pass through all data
 
     stop = climin.stops.Any([
         climin.stops.TimeElapsed(max_minutes * 60),  # maximal time in seconds
@@ -265,8 +270,8 @@ def test_RNN(n_neurons=100, batch_size = 50, participant=[1, 2], series=[1, 2], 
 
 
     m.parameters.data[...] = info['best_pars']
-    plot(0, 'emg_test0.png')
-    plot(1, 'emg_test1.png')
-    plot(2, 'emg_test2.png')
-    plot(3, 'emg_test3.png')
-    plot(4, 'emg_test4.png')
+    plot(0, 'emg_test0.png', test_loss())
+    plot(1, 'emg_test1.png', test_loss())
+    plot(2, 'emg_test2.png', test_loss())
+    plot(3, 'emg_test3.png', test_loss())
+    plot(4, 'emg_test4.png', test_loss())
