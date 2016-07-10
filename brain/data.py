@@ -18,6 +18,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import collections
+from random import shuffle as shuf
 
 import scipy.io as spio
 import scipy
@@ -342,24 +343,31 @@ def getRaw(regex):
                 data.append(mat)
     return data
 
-def get_eeg_emg(participant, series):
+def get_eeg_emg(participant, series, data_selector=None):
     '''
     returns a list of dicts, having event times and dicts of eeg and emg data
 
     data (eeg/emg) dicts keys: windowed time in seconds from eeg_t/emg_t tables
 
-    eeg data format: 32 channels + 2 targets
-    emg data format: 5 channels + 2 targets
+    eeg data format: 32 channels + 1-5 targets
+    emg data format: 5 channels + 1-5 targets
 
     targets (time windows):
-    1. hand move window:    tHandStart                  till tHandStart + trial_DurReach
-    2. grasp:               tHandStart + trial_DurReach till tLiftOff (including: DurPreload)
+    1. move hand to target:     tHandStart                  till tHandStart + trial_DurReach (= tFirstDigitTouch)
+    2. lift object:             tLiftOff                    till LEDOff - 2
+    3. hold phase:              LEDOff - 2                  till LEDOff
+    4. replace object:          LEDOff                      till tReplace
+    5. move hand to start:      tBothRelease                till tHandStop
 
     :param participant e.g. 1, [0-9]
     :param series e.g. 1, [0-9]
+    :param data_selector "eeg", "emg" or None (default), if both data should be loaded.
 
     :return: list of dicts of eeg, emg data
     '''
+
+    eventNames = ['move hand to target', 'lift object', 'hold phase', 'replace object', 'move hand to start']
+
     allTrials = []
     allLifts = getRaw(r'P'+str(participant)+'_AllLifts.mat')[0].get('P')
     allLifts_colNames = allLifts.get('ColNames')
@@ -373,30 +381,43 @@ def get_eeg_emg(participant, series):
     # trial_id = 0
     # win = ws_data[0]
 
-        trial_tHandStart = allTrials[trial_id].get('tHandStart')
-        trial_DurReach = allTrials[trial_id].get('Dur_Reach')
-        trial_DurPreload = allTrials[trial_id].get('Dur_Preload')
-        trial_tLiftOff = allTrials[trial_id].get('tLiftOff')
-        tGrasp_start = trial_tHandStart + trial_DurReach
-        tGrasp_end = trial_tLiftOff #tGrasp_start + trial_DurPreload
+        tHandStart = allTrials[trial_id].get('tHandStart')
+        tLiftOff = allTrials[trial_id].get('tLiftOff')
+        LEDOff = allTrials[trial_id].get('LEDOff')
+        tReplace = allTrials[trial_id].get('tReplace')
+        tBothReleased = allTrials[trial_id].get('tBothReleased')
+        tHandStop = allTrials[trial_id].get('tHandStop')
+        tFirstDigitTouch = allTrials[trial_id].get('tFirstDigitTouch')
+        # DurReach = allTrials[trial_id].get('Dur_Reach')
+        # DurPreload = allTrials[trial_id].get('Dur_Preload')
+        # tGrasp_start = tHandStart + DurReach
 
-        e = win.get('eeg')
-        eeg_seqlenght = e.shape[0]
-        eeg_data = np.zeros((eeg_seqlenght, st.N_EEG_SENSORS + st.N_EEG_TARGETS))
-        eeg_data[:eeg_seqlenght,0:st.N_EEG_SENSORS] = e
-        eeg_data = normalize(eeg_data)
+        eeg_dict = None
+        if data_selector == None or data_selector == "eeg":
+            e = win.get('eeg')
+            eeg_seqlenght = e.shape[0]
+            eeg_data = np.zeros((eeg_seqlenght, st.N_EEG_SENSORS + st.N_EEG_TARGETS))
+            eeg_data[:eeg_seqlenght,0:st.N_EEG_SENSORS] = e
+            eeg_data = normalize(eeg_data)
 
-        eeg_t = win.get('eeg_t')
-        eeg_dict = collections.OrderedDict(zip(eeg_t, eeg_data))
+            eeg_t = win.get('eeg_t')
+            eeg_dict = collections.OrderedDict(zip(eeg_t, eeg_data))
 
-        for item in eeg_dict.iteritems():
-            key = item[0]
+            for item in eeg_dict.iteritems():
+                key = item[0]
 
-            item[1][st.N_EEG_SENSORS: st.N_EEG_SENSORS + st.N_EEG_TARGETS] = 0
-            if key > trial_tHandStart and key < trial_tHandStart + trial_DurReach:
-                item[1][st.N_EEG_SENSORS] = 1
-            elif key > tGrasp_start and key < tGrasp_end:
-                item[1][st.N_EEG_SENSORS+1] = 1
+                item[1][st.N_EEG_SENSORS: st.N_EEG_SENSORS + st.N_EEG_TARGETS] = 0
+                if key > tHandStart and key < tFirstDigitTouch and st.SEQ_EEG_TARGETS[0] != -1:
+                    item[1][st.N_EEG_SENSORS + st.SEQ_EEG_TARGETS[0]] = 1
+                if key > tLiftOff and key < LEDOff - 2 and st.SEQ_EEG_TARGETS[1] != -1:
+                    item[1][st.N_EEG_SENSORS + st.SEQ_EEG_TARGETS[1]] = 1
+                if key > LEDOff - 2 and key < LEDOff and st.SEQ_EEG_TARGETS[2] != -1:
+                    item[1][st.N_EEG_SENSORS + st.SEQ_EEG_TARGETS[2]] = 1
+                if key > LEDOff and key < tReplace and st.SEQ_EEG_TARGETS[3] != -1:
+                    item[1][st.N_EEG_SENSORS + st.SEQ_EEG_TARGETS[3]] = 1
+                if key > tBothReleased and key < tHandStop and st.SEQ_EEG_TARGETS[4] != -1:
+                    item[1][st.N_EEG_SENSORS + st.SEQ_EEG_TARGETS[4]] = 1
+
 
         # eeg_target_vec = np.asarray([item[32:] for item in eeg_dict.itervalues()])
         # xaxis = range(len(eeg_target_vec))
@@ -404,30 +425,64 @@ def get_eeg_emg(participant, series):
         # plt.plot(xaxis, eeg_target_vec[:,1])
         # plt.show()
 
-        e = win.get('emg')
-        emg_seqlenght = e.shape[0]
-        emg_data = np.zeros((emg_seqlenght, st.N_EMG_SENSORS + st.N_EMG_TARGETS))
-        emg_data[:emg_seqlenght,0:st.N_EMG_SENSORS] = e
-        emg_data = normalize(emg_data)
+        emg_dict = None
+        if data_selector == None or data_selector == "emg":
+            e = win.get('emg')
+            emg_seqlenght = e.shape[0]
+            emg_data = np.zeros((emg_seqlenght, st.N_EMG_SENSORS + st.N_EMG_TARGETS))
+            emg_data[:emg_seqlenght,0:st.N_EMG_SENSORS] = e
+            emg_data = normalize(emg_data)
 
-        emg_t = win.get('emg_t')
-        emg_dict = collections.OrderedDict(zip(emg_t, emg_data))
+            emg_t = win.get('emg_t')
+            emg_dict = collections.OrderedDict(zip(emg_t, emg_data))
 
-        for item in emg_dict.iteritems():
-            key = item[0]
+            for item in emg_dict.iteritems():
+                key = item[0]
 
-            item[1][st.N_EMG_SENSORS: st.N_EMG_SENSORS+st.N_EMG_TARGETS] = 0
-            if key > trial_tHandStart and key < trial_tHandStart + trial_DurReach:
-                item[1][st.N_EMG_SENSORS] = 1
-            elif key > tGrasp_start and key < tGrasp_end:
-                item[1][st.N_EMG_SENSORS+1] = 1
+                item[1][st.N_EMG_SENSORS: st.N_EMG_SENSORS+st.N_EMG_TARGETS] = 0
+                if key > tHandStart and key < tFirstDigitTouch and st.SEQ_EMG_TARGETS[0] != -1:
+                    item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[0]] = 1
+                if key > tLiftOff and key < LEDOff - 2 and st.SEQ_EMG_TARGETS[1] != -1:
+                    item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[1]] = 1
+                if key > LEDOff - 2 and key < LEDOff and st.SEQ_EMG_TARGETS[2] != -1:
+                    item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[2]] = 1
+                if key > LEDOff and key < tReplace and st.SEQ_EMG_TARGETS[3] != -1:
+                    item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[3]] = 1
+                if key > tBothReleased and key < tHandStop and st.SEQ_EMG_TARGETS[4] != -1:
+                    item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[4]] = 1
+
 
         data.append({'trial_id': trial_id, 'eeg_target': eeg_dict, 'emg_target': emg_dict,
-                     'tHandStart': trial_tHandStart, 'tLiftOff': trial_tLiftOff,
-                     'DurReach': trial_DurReach, 'Dur_Preload': trial_DurPreload})
+                     'tHandStart': tHandStart, 'tLiftOff': tLiftOff, 'tBothReleased': tBothReleased,
+                     'LEDOff': LEDOff, 'tReplace': tReplace, 'tHandStop': tHandStop,
+                     'tFirstDigitTouch': tFirstDigitTouch})
 
-    return data
+    return data, eventNames
 
+def load_multiple(participant, series, data_selector=None, shuffle=True):
+    '''
+    this is a wrapper for load_eeg_emg in order to be able to load more than one person/session at once.
+
+    for more information look at load_emg_emg
+
+    :param participant list e.g. [1, 2, 5]
+    :param series list [1, 2, 3, 7]
+    :param data_selector "eeg", "emg" or None (default), if both data should be loaded.
+    :param shuffle determines if data should be shuffled randomly
+
+    :return: list of dicts of eeg, emg data
+    '''
+
+    data = []
+    for p in participant:
+        for s in series:
+            data_tmp, eventNames = get_eeg_emg(p, s, data_selector)
+            data = data + data_tmp
+
+    if shuffle:
+        shuf(data)
+
+    return data, eventNames
 
 def normalize(data):
     '''
