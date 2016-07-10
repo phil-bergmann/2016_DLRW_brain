@@ -36,8 +36,8 @@ def get_shaped_input(participant, series, subsample=0):
     '''
     # data, eventNames = get_eeg_emg(participant, series, "emg")
     data, eventNames = load_multiple(participant, series, 'emg')
-    p_train = 0.7
-    p_val = 0.15
+    p_train = 0.8
+    p_val = 0.1
     n_train = int(len(data) * p_train)
     n_val = int(len(data) * (p_val + p_train)) - int(len(data) * p_train)
     n_test = len(data) - n_train - n_val
@@ -121,7 +121,7 @@ def get_shaped_input(participant, series, subsample=0):
     return sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames
 
 
-def test_RNN(n_neurons=100, batch_size=50, participant=[1, 2], series=[1, 2], subsample=10,
+def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 5, 6, 7, 8, 9], subsample=10,
              imp_weights_skip=150, n_layers=1):
     #optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
     optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'step_rate': .1}
@@ -232,7 +232,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1, 2], series=[1, 2], su
     stop = climin.stops.Any([
         climin.stops.TimeElapsed(max_minutes * 60),  # maximal time in seconds
         climin.stops.AfterNIterations(max_iter),  # maximal iterations
-        climin.stops.Patience('val_loss', 1000, grow_factor=1.1, threshold=0.0001),  # kind of early stopping
+        climin.stops.Patience('val_loss', batches_per_pass*10, grow_factor=1.5, threshold=0.0001),  # kind of early stopping
         # climin.stops.NotBetterThanAfter(30, 100),  # error under 30 after 100 iterations?
     ])
 
@@ -274,4 +274,3 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1, 2], series=[1, 2], su
     plot(1, 'emg_test1.png', test_loss())
     plot(2, 'emg_test2.png', test_loss())
     plot(3, 'emg_test3.png', test_loss())
-    plot(4, 'emg_test4.png', test_loss())
