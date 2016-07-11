@@ -126,7 +126,7 @@ def get_shaped_input(participant, series, subsample=0):
     return sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames
 
 
-def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1], subsample=10,
+def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 5, 6, 7, 8, 9], subsample=10,
              imp_weights_skip=150, n_layers=1):
     logging.info('--------------------------------')
     logging.info('Rnn: n_neurons: %i, batch_size: %i, participant: %s, series: %s, subsample: %i, imp_weights_skip: %i'
@@ -237,7 +237,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1], subsampl
         plt.close(figure)
 
 
-    max_passes = 10
+    max_passes = 20
     max_minutes = 60
     max_iter = max_passes * sX.shape[1] / m.batch_size
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
@@ -292,7 +292,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1], subsampl
 
     logging.info('saved at: %s' % save_timestmp)
 
-    plot(0, 'emg_test0_'+save_timestmp+'.png', test_loss())
-    plot(1, 'emg_test1_'+save_timestmp+'.png', test_loss())
-    plot(2, 'emg_test2_'+save_timestmp+'.png', test_loss())
-    plot(3, 'emg_test3_'+save_timestmp+'.png', test_loss())
+    plot(0, 'img/emg_test0_'+save_timestmp+'.png', test_loss())
+    plot(1, 'img/emg_test1_'+save_timestmp+'.png', test_loss())
+    plot(2, 'img/emg_test2_'+save_timestmp+'.png', test_loss())
+    plot(3, 'img/emg_test3_'+save_timestmp+'.png', test_loss())
