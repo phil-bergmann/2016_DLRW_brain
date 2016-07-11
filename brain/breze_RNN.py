@@ -2,6 +2,9 @@ import cPickle
 import math
 import time
 import os
+from datetime import datetime
+from data import toUTCtimestamp
+import logging
 
 import numpy as np
 import theano.tensor as T
@@ -23,6 +26,8 @@ from climin.initialize import bound_spectral_radius
 import matplotlib.pyplot as plt
 
 import csv
+=======
+logging.basicConfig(filename='breze_RNN.log', level=logging.INFO)
 
 def get_shaped_input(participant, series, subsample=0):
     '''
@@ -77,7 +82,6 @@ def get_shaped_input(participant, series, subsample=0):
                 TZ[timestep, trial_id - n_train - n_val, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_EMG_TARGETS]
             timestep += 1
 
-    # subsample
     if subsample > 0:
         print('[*] Subsampling with factor %d' %(subsample))
 
@@ -139,11 +143,19 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
     format_string = format_string[:-1]
     format_string += ']_%d_%d_%d_%d'
     net_info = format_string % (n_neurons, batch_size, subsample, imp_weights_skip, n_layers, time.time())
+    logging.info('--------------------------------')
+    logging.info('Rnn: n_neurons: %i, batch_size: %i, participant: %s, series: %s, subsample: %i, imp_weights_skip: %i'
+                 % (n_neurons, batch_size, participant, series, subsample, imp_weights_skip))
 
     #optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
-    optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'step_rate': .1}
+    decay = 0.9
+    offset = 1e-6
+    mom = .9
+    step_rate = .1
+    optimizer = 'adadelta', {'decay': decay, 'offset': offset, 'momentum': mom, 'step_rate': step_rate}
     # optimizer = 'adam'
     n_hiddens = [n_neurons] * n_layers
+    logging.info('optimizer: %s' % str(optimizer))
 
     m = SupervisedRnn(
         st.N_EMG_SENSORS, n_hiddens, st.N_EMG_TARGETS,  out_transfer='sigmoid', loss='bern_ces',
@@ -241,7 +253,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
         plt.close(figure)
 
 
-    max_passes = 100
+    max_passes = 20
     max_minutes = 60
     max_iter = max_passes * sX.shape[1] / m.batch_size
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
@@ -257,6 +269,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
     start = time.time()
     header = '#', 'seconds', 'loss', 'val loss', 'test loss'
     print '\t'.join(header)
+    logging.info('\t'.join(header))
 
 
     infos = []
@@ -289,7 +302,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
                 ['%(n_iter)i', '%(time)g', '%(loss)g', '%(val_loss)g', '%(test_loss)g'])
             row = template % info
             print row
-
+            logging.info(row)
             filtered_info = dict(
                 (k, v) for k, v in info.items()
                 # if (not isinstance(v, (np.ndarray, gp.garray)) or v.size <= 1) and k not in ('args', 'kwargs'))
@@ -304,8 +317,13 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
     finally:
         f.close()
 
-
     m.parameters.data[...] = info['best_pars']
+
+    save_timestmp = toUTCtimestamp(datetime.utcnow())
+    dot_idx = str(save_timestmp).index('.')
+    save_timestmp = str(save_timestmp)[:dot_idx]
+
+    logging.info('saved at: %s' % save_timestmp)
 
     plot(0, 'images/%s_emg_test0.png' % net_info, test_loss())
     plot(1, 'images/%s_emg_test1.png' % net_info, test_loss())
