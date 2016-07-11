@@ -1,6 +1,7 @@
 import cPickle
 import math
 import time
+import os
 
 import numpy as np
 import theano.tensor as T
@@ -20,6 +21,8 @@ import climin.mathadapt as ma
 from climin.initialize import bound_spectral_radius
 
 import matplotlib.pyplot as plt
+
+import csv
 
 def get_shaped_input(participant, series, subsample=0):
     '''
@@ -123,6 +126,20 @@ def get_shaped_input(participant, series, subsample=0):
 
 def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 5, 6, 7, 8, 9], subsample=10,
              imp_weights_skip=150, n_layers=1):
+    format_string = '%d_%d_['
+    for p in participant:
+        format_string += '%d,' % p
+
+    format_string = format_string[:-1]
+    format_string += ']_['
+
+    for s in series:
+        format_string += '%d,' % s
+
+    format_string = format_string[:-1]
+    format_string += ']_%d_%d_%d_%d'
+    net_info = format_string % (n_neurons, batch_size, subsample, imp_weights_skip, n_layers, time.time())
+
     #optimizer = 'rmsprop', {'step_rate': 0.0001, 'momentum': 0.9, 'decay': 0.9}
     optimizer = 'adadelta', {'decay': 0.9, 'offset': 1e-6, 'momentum': .9, 'step_rate': .1}
     # optimizer = 'adam'
@@ -172,7 +189,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
     climin.initialize.randomize_normal(m.parameters.data, 0, 0.1)
     #climin.initialize.bound_spectral_radius(m.parameters.data)
 
-    def plot(test_sample=0, save_name='test.png', test_loss=None):
+    def plot(test_sample=0, save_name='images/%s_test.png' % net_info, test_loss=None):
         colors = ['blue', 'red', 'green', 'cyan', 'magenta']
         figure, (axes) = plt.subplots(3, 1)
 
@@ -204,6 +221,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
         train_loss = []
         val_loss = []
         test_loss = []
+
         for i in infos:
             train_loss.append(i['loss'])
             val_loss.append(i['val_loss'])
@@ -242,35 +260,54 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
 
 
     infos = []
-    for i, info in enumerate(m.powerfit((sX, sZ, W), (sVX, sVZ, WV), stop=stop,
-                                        report=pause, eval_train_loss=True)):
+    try:
+		os.makedirs('losses')
+    except OSError as exc:  # Python >2.5
+        if exc.errno == errno.EEXIST and os.path.isdir(path):
+            pass
+        else:
+            raise
 
-        info['loss'] = float(info['loss'])
-        info['val_loss'] = float(info['val_loss'])
-        info['test_loss'] = float(ma.scalar(test_loss()))
+    f = open('losses/%s.csv' % net_info, 'wt')
+    try:
+        writer = csv.writer(f)
+        writer.writerow(('Train loss', 'Validation loss', 'Test Loss'))
+        for i, info in enumerate(m.powerfit((sX, sZ, W), (sVX, sVZ, WV), stop=stop,
+                                            report=pause, eval_train_loss=True)):
 
-        info.update({
-            'time': time.time() - start,
-            # 'spectral_radius': get_spectral_radius(m.parameters['recurrent_0']),
-        })
-        template = '\t'.join(
-            ['%(n_iter)i', '%(time)g', '%(loss)g', '%(val_loss)g', '%(test_loss)g'])
-        row = template % info
-        print row
+            info['loss'] = float(info['loss'])
+            info['val_loss'] = float(info['val_loss'])
+            info['test_loss'] = float(ma.scalar(test_loss()))
 
-        filtered_info = dict(
-            (k, v) for k, v in info.items()
-            # if (not isinstance(v, (np.ndarray, gp.garray)) or v.size <= 1) and k not in ('args', 'kwargs'))
-            if (not isinstance(v, (np.ndarray,)) or v.size <= 1) and k not in ('args', 'kwargs'))
+            writer.writerow((info['loss'], info['val_loss'], info['test_loss']))
 
-        for key in filtered_info:
-            if isinstance(filtered_info[key], np.float32):
-                filtered_info[key] = float(filtered_info[key])
-        infos.append(filtered_info)
+            info.update({
+                'time': time.time() - start,
+                # 'spectral_radius': get_spectral_radius(m.parameters['recurrent_0']),
+            })
+            template = '\t'.join(
+                ['%(n_iter)i', '%(time)g', '%(loss)g', '%(val_loss)g', '%(test_loss)g'])
+            row = template % info
+            print row
+
+            filtered_info = dict(
+                (k, v) for k, v in info.items()
+                # if (not isinstance(v, (np.ndarray, gp.garray)) or v.size <= 1) and k not in ('args', 'kwargs'))
+                if (not isinstance(v, (np.ndarray,)) or v.size <= 1) and k not in ('args', 'kwargs'))
+
+            for key in filtered_info:
+                if isinstance(filtered_info[key], np.float32):
+                    filtered_info[key] = float(filtered_info[key])
+            infos.append(filtered_info)
+
+
+    finally:
+        f.close()
 
 
     m.parameters.data[...] = info['best_pars']
-    plot(0, 'emg_test0.png', test_loss())
-    plot(1, 'emg_test1.png', test_loss())
-    plot(2, 'emg_test2.png', test_loss())
-    plot(3, 'emg_test3.png', test_loss())
+
+    plot(0, 'images/%s_emg_test0.png' % net_info, test_loss())
+    plot(1, 'images/%s_emg_test1.png' % net_info, test_loss())
+    plot(2, 'images/%s_emg_test2.png' % net_info, test_loss())
+    plot(3, 'images/%s_emg_test3.png' % net_info, test_loss())
