@@ -111,15 +111,6 @@ def load_eeg(participant):
     eeg_y = [] # targets currently unknown
     return eeg_x, eeg_y
 
-def load_emg(participant):
-    """TODO: Docstring for load_emg.
-
-    :participant: TODO
-    :returns: TODO
-
-    """
-    pass
-
 def download_way_eeg_gal(participant, dir=DATA_DIR):
     """Downloads the WAY-EEG-GAL dataset
 
@@ -475,6 +466,8 @@ def load_multiple(participant, series, data_selector=None, shuffle=True):
 
     data = []
     for p in participant:
+        download_way_eeg_gal(p)
+        unzip_way_eeg_gal(p)
         for s in series:
             data_tmp, eventNames = get_eeg_emg(p, s, data_selector)
             data = data + data_tmp
