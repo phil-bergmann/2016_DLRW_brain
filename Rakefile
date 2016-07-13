@@ -4,7 +4,8 @@ PROJECT_NAME = '2016-DLRW-brain'
 DATASET = FileList[ '*/**/*.mat', '*/**/*.zip' ]
 SOURCE_FILES = FileList['*/**/*.py']
 DOCUMENTATION = FileList['*/**/*.tex']
-LATEXMK_OPTIONS = '-gg -d -cd -pdf -halt-on-error'
+#LATEXMK_OPTIONS = '-gg -d -cd -pdf -halt-on-error'
+LATEXMK_OPTIONS = "-cd -pdf -gg -deps"
 
 CLEAN << FileList['doc/*.{aux,log,out}']
 CLEAN << DATASET
@@ -31,19 +32,46 @@ task :test do
 end
 
 namespace :doc do
-  namespace :compile do
-    task :once do
-      sh "latexmk #{LATEXMK_OPTIONS} -jobname=#{PROJECT_NAME} doc/main.tex"
+  namespace :reports do
+    namespace :eeg_curiosities do
+      namespace :I do
+        task :compile do
+          sh "latexmk #{LATEXMK_OPTIONS} doc/reports/eeg_curiosities/eeg_curiosities.tex"
+        end
+      end
+      task I: 'I:compile'
+
+      namespace :II do
+        task :compile do
+          sh "latexmk #{LATEXMK_OPTIONS} doc/reports/eeg_curiosities_followup/eeg_curiosities_followup.tex"
+        end
+      end
+      task II: 'II:compile'
+
+      namespace :III do
+        task :compile do
+          sh "latexmk #{LATEXMK_OPTIONS} doc/reports/eeg_curiosities_followup_II/eeg_curiosities_followup_II.tex"
+        end
+      end
+      task III: 'III:compile'
     end
-    
-    desc 'countinuusly run latexmk'
-    task :continuous do
-      sh "latexmk #{LATEXMK_OPTIONS} -pvc -jobname=#{PROJECT_NAME} doc/main.tex"
+    task eeg_curiosities: ['eeg_curiosities:I', 'eeg_curiosities:II', 'eeg_curiosities:III']
+
+    namespace :report do
+      task :compile do
+        sh "latexmk #{LATEXMK_OPTIONS} doc/reports/report.tex"
+      end
+    end
+    task report: 'report:compile'
+  end
+  task reports: ['reports:report', 'reports:eeg_curiosities']
+
+  namespace :presentation do
+    task :compile do
+      sh "latexmk #{LATEXMK_OPTIONS} doc/presentation/main.tex"
     end
   end
-
-  desc 'compile the report using latexmk'
-  task compile: 'compile:once'
+  task presentation: ['presentation:compile']
 
   desc "Counts words of main document"
   task :count do
@@ -66,7 +94,8 @@ namespace :doc do
     `open doc/#{PROJECT_NAME}.pdf`
   end
 
-  task all: [:count, :pages, :compile]
+  task all: [:reports, :presentation]
 end
 
+desc "Compile documents"
 task doc: 'doc:all'
