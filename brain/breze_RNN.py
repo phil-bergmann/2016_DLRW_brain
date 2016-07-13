@@ -1,32 +1,31 @@
-import cPickle
 import math
 import time
 import os
+import errno
 from datetime import datetime
 from data import toUTCtimestamp
 import logging
 
 import numpy as np
-import theano.tensor as T
 
-from data import get_eeg_emg, load_multiple
+from data import load_multiple
 import globals as st
 
-from breze.learn.data import interleave, padzeros, split
-from breze.learn import base
-from breze.learn.rnn import SupervisedFastDropoutRnn, SupervisedRnn
-import breze.learn.display as D
+#from breze.learn.data import interleave, padzeros, split
+#from breze.learn import base
+#from breze.learn.rnn import SupervisedFastDropoutRnn, SupervisedRnn
+from breze.learn.rnn import SupervisedRnn
+#import breze.learn.display as D
 from breze.arch.component.loss import bern_ces
 
 import climin.initialize
 import climin.stops
 import climin.mathadapt as ma
-from climin.initialize import bound_spectral_radius
+#from climin.initialize import bound_spectral_radius
 
 import matplotlib.pyplot as plt
 
 import csv
-=======
 logging.basicConfig(filename='breze_RNN.log', level=logging.INFO)
 
 def get_shaped_input(participant, series, subsample=0):
@@ -276,7 +275,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
     try:
 		os.makedirs('losses')
     except OSError as exc:  # Python >2.5
-        if exc.errno == errno.EEXIST and os.path.isdir(path):
+        if exc.errno == errno.EEXIST and os.path.isdir('losses'):
             pass
         else:
             raise
