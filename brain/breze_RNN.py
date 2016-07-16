@@ -273,7 +273,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
 
     infos = []
     try:
-		os.makedirs('losses')
+        os.makedirs('losses')
     except OSError as exc:  # Python >2.5
         if exc.errno == errno.EEXIST and os.path.isdir('losses'):
             pass
