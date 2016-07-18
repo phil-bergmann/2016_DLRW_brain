@@ -61,21 +61,38 @@ def get_shaped_input(participant, series, subsample=0):
 
     seqlength = min_seqlength
 
-    X = np.zeros((max_seqlength, n_train, st.N_EMG_SENSORS))
-    Z = np.zeros((max_seqlength, n_train, st.N_EMG_TARGETS))
-    VX = np.zeros((max_seqlength, n_val, st.N_EMG_SENSORS))
-    VZ = np.zeros((max_seqlength, n_val, st.N_EMG_TARGETS))
+    number_samples_train = 0;
+    number_samples_val = 0;
+    number_samples_test = 0;
+    for trial_id in range(len(data)):
+        if trial_id < n_train:
+            number_samples_train += len(data[trial_id]['emg_target'])
+        elif trial_id < n_train + n_val:
+            number_samples_val +=  len(data[trial_id]['emg_target'])
+        else:
+            number_samples_test += len(data[trial_id]['emg_target'])
+
+
+    X = np.zeros((number_samples_train, st.N_EMG_SENSORS))
+    Z = np.zeros((number_samples_train, st.N_EMG_TARGETS))
+    VX = np.zeros((number_samples_val, st.N_EMG_SENSORS))
+    VZ = np.zeros((number_samples_val, st.N_EMG_TARGETS))
     TX = np.zeros((max_seqlength, n_test, st.N_EMG_SENSORS))
     TZ = np.zeros((max_seqlength, n_test, st.N_EMG_TARGETS))
+    counter_train = 0
+    counter_val = 0
+    counter_test = 0
     for trial_id in range(len(data)):
         timestep = 0
         for sensor_set in data[trial_id]['emg_target'].iteritems():
             if trial_id < n_train:
-                X[timestep, trial_id, ...] = sensor_set[1][0:st.N_EMG_SENSORS]
-                Z[timestep, trial_id, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS+st.N_EMG_TARGETS]
+                X[counter_train, ...] = sensor_set[1][0:st.N_EMG_SENSORS]
+                Z[counter_train, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS+st.N_EMG_TARGETS]
+                counter_train +=1
             elif trial_id < n_train + n_val:
-                VX[timestep, trial_id-n_train, ...] = sensor_set[1][0:st.N_EMG_SENSORS]
-                VZ[timestep, trial_id-n_train, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_EMG_TARGETS]
+                VX[counter_val, ...] = sensor_set[1][0:st.N_EMG_SENSORS]
+                VZ[counter_val, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_EMG_TARGETS]
+                counter_val += 1
             else:
                 TX[timestep, trial_id - n_train - n_val, ...] = sensor_set[1][0:st.N_EMG_SENSORS]
                 TZ[timestep, trial_id - n_train - n_val, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_EMG_TARGETS]
@@ -100,18 +117,24 @@ def get_shaped_input(participant, series, subsample=0):
 
     print('[*] Seqlenght: ' + str(seqlength))
 
+    len_x_mod = len(X) % st.STRIDE_LEN
+    len_x = len(X) - len_x_mod
+
+    len_vx_mod = len(VX) % st.STRIDE_LEN
+    len_vx = len(VX) - len_vx_mod
+
     # cut data to smallest overlap (along time axis)
-    X_trim = X[:seqlength]
-    sX = X_trim.transpose(1, 0, 2).reshape((-1, st.STRIDE_LEN, st.N_EMG_SENSORS)).transpose(1, 0, 2)
+    X_trim = X[:len_x]
+    sX = X_trim.reshape(( -1,st.STRIDE_LEN, st.N_EMG_SENSORS)).transpose(1,0,2)
 
-    Z_trim = Z[:seqlength]
-    sZ = Z_trim.transpose(1, 0, 2).reshape((-1, st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1, 0, 2)
+    Z_trim = Z[:len_x]
+    sZ = Z_trim.reshape(( -1,st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1,0,2)
 
-    VX_trim = VX[:seqlength]
-    sVX = VX_trim.transpose(1, 0, 2).reshape((-1, st.STRIDE_LEN, st.N_EMG_SENSORS)).transpose(1, 0, 2)
+    VX_trim = VX[:len_vx]
+    sVX = VX_trim.reshape(( -1,st.STRIDE_LEN, st.N_EMG_SENSORS)).transpose(1,0,2)
 
-    VZ_trim = VZ[:seqlength]
-    sVZ = VZ_trim.transpose(1, 0, 2).reshape((-1, st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1, 0, 2)
+    VZ_trim = VZ[:len_vx]
+    sVZ = VZ_trim.reshape(( -1,st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1,0,2)
 
     # No need to trim test set here
     # TX = TX[:seqlength]
@@ -127,7 +150,7 @@ def get_shaped_input(participant, series, subsample=0):
     return sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames
 
 
-def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 5, 6, 7, 8, 9], subsample=10,
+def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2], subsample=10,
              imp_weights_skip=150, n_layers=1):
     format_string = '%d_%d_['
     for p in participant:
@@ -167,10 +190,10 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
 
     W = np.ones_like(sZ)
     WV = np.ones_like(sVZ)
-    WT = np.ones_like(TX)
+    #WT = np.ones_like(TX)
     W[:imp_weights_skip, :, :] = 0
     WV[:imp_weights_skip, :, :] = 0
-    WT[:imp_weights_skip, :, :] = 0
+    #WT[:imp_weights_skip, :, :] = 0
 
 
     m.exprs['true_loss'] = m.exprs['loss']
@@ -200,8 +223,10 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
     climin.initialize.randomize_normal(m.parameters.data, 0, 0.1)
     #climin.initialize.bound_spectral_radius(m.parameters.data)
 
+    #m.initialize(spectral_radius=1.2)
+
     def plot(test_sample=0, save_name='images/%s_test.png' % net_info, test_loss=None):
-        colors = ['blue', 'red', 'green', 'cyan', 'magenta']
+        colors = ['blue', 'red', 'green', 'cyan', 'magenta', 'orange', 'yellow']
         figure, (axes) = plt.subplots(3, 1)
 
 
@@ -210,7 +235,8 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
 
         input_for_plot = TX[:, test_sample:test_sample+1, :]
         # to be able to plot the test samples in correct length we have to determine where the '0' padding starts
-        sample_length = min(np.where(input_for_plot == np.zeros((st.N_EMG_TARGETS)))[0])
+        sample_length = min(np.append(len(input_for_plot), np.where(input_for_plot == np.zeros((st.N_EMG_TARGETS)))[0]))
+        #sample_length = min(np.where(input_for_plot == np.zeros((st.N_EMG_TARGETS))[0]))
         input_for_plot = input_for_plot[:sample_length]
         target_for_plot = TZ[:sample_length, test_sample:test_sample+1, :]
         result = m.predict(input_for_plot)
@@ -252,16 +278,16 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 
         plt.close(figure)
 
 
-    max_passes = 20
-    max_minutes = 60
+    max_passes = 200
+    max_minutes = 10
     max_iter = max_passes * sX.shape[1] / m.batch_size
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
     pause = climin.stops.ModuloNIterations(batches_per_pass * 1)  # after each pass through all data
 
     stop = climin.stops.Any([
         climin.stops.TimeElapsed(max_minutes * 60),  # maximal time in seconds
-        climin.stops.AfterNIterations(max_iter),  # maximal iterations
-        climin.stops.Patience('val_loss', batches_per_pass*10, grow_factor=1.5, threshold=0.0001),  # kind of early stopping
+        climin.stops.AfterNIterations(max_iter)  # maximal iterations
+        #climin.stops.Patience('val_loss', batches_per_pass*50, grow_factor=2.0, threshold=0.00001),  # kind of early stopping
         # climin.stops.NotBetterThanAfter(30, 100),  # error under 30 after 100 iterations?
     ])
 

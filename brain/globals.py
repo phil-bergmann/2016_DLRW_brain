@@ -9,14 +9,14 @@ N_EEG_SENSORS = 32
 N_EMG_SENSORS = 5
 
 # defines which events to select and their sequence (-1: deactivated, 0: First, 1: Second, ...)
-SEQ_EMG_TARGETS = [0, 1, 2, 3, 4]
+SEQ_EMG_TARGETS = [-1, -1, -1, -1, 0, -1, -1, -1]
 # must be set correctly
-N_EMG_TARGETS = 5
+N_EMG_TARGETS = 1
 
 # defines which events to select and their sequence (-1: deactivated, 0: First, 1: Second, ...)
-SEQ_EEG_TARGETS = [0, 1, -1, -1, -1]
+SEQ_EEG_TARGETS = [-1, -1, -1, -1, -1]
 # must be set correctly
-N_EEG_TARGETS = 2
+N_EEG_TARGETS = 0
 
 
 N_EEG_TIMESTEPS = 6200
