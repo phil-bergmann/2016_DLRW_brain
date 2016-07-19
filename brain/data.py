@@ -358,7 +358,7 @@ def get_eeg_emg(participant, series, data_selector=None):
     :return: list of dicts of eeg, emg data
     '''
 
-    eventNames = ['move hand to target', 'lift object', 'hold phase', 'replace object', 'move hand to start', 'object touched']
+    eventNames = ['move hand to target', 'lift object', 'hold phase', 'replace object', 'move hand to start']
 
     allTrials = []
     allLifts = getRaw(r'P'+str(participant)+'_AllLifts.mat')[0].get('P')
@@ -442,8 +442,6 @@ def get_eeg_emg(participant, series, data_selector=None):
                     item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[3]] = 1
                 if key > tBothReleased and key < tHandStop and st.SEQ_EMG_TARGETS[4] != -1:
                     item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[4]] = 1
-                if key > tFirstDigitTouch and key < tBothReleased and st.SEQ_EMG_TARGETS[5] != -1:
-                    item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[5]] = 1
 
 
 

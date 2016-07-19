@@ -208,7 +208,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2], subsa
     climin.initialize.randomize_normal(m.parameters.data, 0, 0.1)
 
     def plot(test_sample=0, save_name='images/%s_test.png' % net_info, test_loss=None):
-        colors = ['blue', 'red', 'green', 'cyan', 'magenta', 'orange']
+        colors = ['blue', 'red', 'green', 'cyan', 'magenta']
         plt.figure(figsize=(40, 10))
         figure, (axes) = plt.subplots(3, 1,figsize=(20,5))
 
@@ -253,7 +253,8 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2], subsa
 
 
     max_passes = 400
-    max_minutes =10
+    max_minutes = 60
+
     max_iter = max_passes * sX.shape[1] / m.batch_size
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
     pause = climin.stops.ModuloNIterations(batches_per_pass * 1)  # after each pass through all data
