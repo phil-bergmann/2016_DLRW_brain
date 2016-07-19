@@ -11,17 +11,12 @@ import numpy as np
 from data import load_multiple
 import globals as st
 
-#from breze.learn.data import interleave, padzeros, split
-#from breze.learn import base
-#from breze.learn.rnn import SupervisedFastDropoutRnn, SupervisedRnn
 from breze.learn.rnn import SupervisedRnn
-#import breze.learn.display as D
 from breze.arch.component.loss import bern_ces
 
 import climin.initialize
 import climin.stops
 import climin.mathadapt as ma
-#from climin.initialize import bound_spectral_radius
 
 import matplotlib.pyplot as plt
 
@@ -41,7 +36,6 @@ def get_shaped_input(participant, series, subsample=0):
     :param series:
     :return:
     '''
-    # data, eventNames = get_eeg_emg(participant, series, "emg")
     data, eventNames = load_multiple(participant, series, 'emg')
     p_train = 0.8
     p_val = 0.1
@@ -59,26 +53,25 @@ def get_shaped_input(participant, series, subsample=0):
     print('[*] min seqlength: %i' % min_seqlength)
     print('[*] max seqlength: %i' % max_seqlength)
 
-    seqlength = min_seqlength
 
-    number_samples_train = 0;
-    number_samples_val = 0;
-    number_samples_test = 0;
+    number_points_train = 0
+    number_points_val = 0
+    number_points_test = 0
     for trial_id in range(len(data)):
         if trial_id < n_train:
-            number_samples_train += len(data[trial_id]['emg_target'])
+            number_points_train += len(data[trial_id]['emg_target'])
         elif trial_id < n_train + n_val:
-            number_samples_val +=  len(data[trial_id]['emg_target'])
+            number_points_val +=  len(data[trial_id]['emg_target'])
         else:
-            number_samples_test += len(data[trial_id]['emg_target'])
+            number_points_test += len(data[trial_id]['emg_target'])
 
 
-    X = np.zeros((number_samples_train, st.N_EMG_SENSORS))
-    Z = np.zeros((number_samples_train, st.N_EMG_TARGETS))
-    VX = np.zeros((number_samples_val, st.N_EMG_SENSORS))
-    VZ = np.zeros((number_samples_val, st.N_EMG_TARGETS))
-    TX = np.zeros((max_seqlength, n_test, st.N_EMG_SENSORS))
-    TZ = np.zeros((max_seqlength, n_test, st.N_EMG_TARGETS))
+    X = np.zeros((number_points_train, st.N_EMG_SENSORS))
+    Z = np.zeros((number_points_train, st.N_EMG_TARGETS))
+    VX = np.zeros((number_points_val, st.N_EMG_SENSORS))
+    VZ = np.zeros((number_points_val, st.N_EMG_TARGETS))
+    TX = np.zeros((number_points_test, st.N_EMG_SENSORS))
+    TZ = np.zeros((number_points_test, st.N_EMG_TARGETS))
     counter_train = 0
     counter_val = 0
     counter_test = 0
@@ -94,8 +87,9 @@ def get_shaped_input(participant, series, subsample=0):
                 VZ[counter_val, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_EMG_TARGETS]
                 counter_val += 1
             else:
-                TX[timestep, trial_id - n_train - n_val, ...] = sensor_set[1][0:st.N_EMG_SENSORS]
-                TZ[timestep, trial_id - n_train - n_val, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_EMG_TARGETS]
+                TX[counter_test, ...] = sensor_set[1][0:st.N_EMG_SENSORS]
+                TZ[counter_test, ...] = sensor_set[1][st.N_EMG_SENSORS:st.N_EMG_SENSORS + st.N_EMG_TARGETS]
+                counter_test += 1
             timestep += 1
 
     if subsample > 0:
@@ -111,17 +105,15 @@ def get_shaped_input(participant, series, subsample=0):
         TZ = TZ[::subsample]
 
 
-        seqlength = seqlength/subsample
-        seqlength_mod = seqlength % st.STRIDE_LEN
-        seqlength -= seqlength_mod
-
-    print('[*] Seqlenght: ' + str(seqlength))
-
     len_x_mod = len(X) % st.STRIDE_LEN
     len_x = len(X) - len_x_mod
 
+    print('[*] len_x: ' + str(len_x))
+
     len_vx_mod = len(VX) % st.STRIDE_LEN
     len_vx = len(VX) - len_vx_mod
+    print('[*] len_vx: ' + str(len_vx))
+
 
     # cut data to smallest overlap (along time axis)
     X_trim = X[:len_x]
@@ -136,6 +128,10 @@ def get_shaped_input(participant, series, subsample=0):
     VZ_trim = VZ[:len_vx]
     sVZ = VZ_trim.reshape(( -1,st.STRIDE_LEN, st.N_EMG_TARGETS)).transpose(1,0,2)
 
+    #Combine all test point to one big sample
+    sTX = TX.reshape((-1, 1, st.N_EMG_SENSORS))
+    sTZ = TZ.reshape((-1,1 , st.N_EMG_TARGETS))
+
     # No need to trim test set here
     # TX = TX[:seqlength]
     # TZ = TZ[:seqlength]
@@ -144,10 +140,10 @@ def get_shaped_input(participant, series, subsample=0):
     print('[*] Shape Training Set Z: ' + str(sZ.shape))
     print('[*] Shape Validation Set X: ' + str(sVX.shape))
     print('[*] Shape Validation Set Z: ' + str(sVZ.shape))
-    print('[*] Shape Test Set X: ' + str(TX.shape))
-    print('[*] Shape Test Set Z: ' + str(TZ.shape))
+    print('[*] Shape Test Set X: ' + str(sTX.shape))
+    print('[*] Shape Test Set Z: ' + str(sTZ.shape))
 
-    return sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames
+    return sX, sZ, sVX, sVZ, sTX, sTZ, eventNames
 
 
 def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2], subsample=10,
@@ -186,7 +182,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2], subsa
         imp_weight=True,
         optimizer=optimizer)
 
-    sX, sZ, sVX, sVZ, TX, TZ, seqlength, eventNames = get_shaped_input(participant, series, subsample)
+    sX, sZ, sVX, sVZ, sTX, sTZ, eventNames = get_shaped_input(participant, series, subsample)
 
     W = np.ones_like(sZ)
     WV = np.ones_like(sVZ)
@@ -205,40 +201,20 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2], subsa
     # bern_ces changes the prediction!!! *facepalm*
     # ... just be careful to call it with a copy of the array
     def test_loss():
-        return bern_ces(m.predict(TX)[:imp_weights_skip, :seqlength, :],
-                        np.copy(TZ[:imp_weights_skip, :seqlength, :])).eval().mean()
-
-
-    '''
-    def test_nll():
-        nll = 0
-        n_time_steps = 0
-        for x, z in zip(tx, tz):
-            nll += f_loss(x[:, np.newaxis], z[:, np.newaxis]) * x.shape[0]
-            n_time_steps += x.shape[0]
-        return nll / n_time_steps
-    '''
+        pred = m.predict(sTX)
+        return bern_ces(np.copy(sTZ), pred).eval().mean()
 
 
     climin.initialize.randomize_normal(m.parameters.data, 0, 0.1)
-    #climin.initialize.bound_spectral_radius(m.parameters.data)
-
-    #m.initialize(spectral_radius=1.2)
 
     def plot(test_sample=0, save_name='images/%s_test.png' % net_info, test_loss=None):
-        colors = ['blue', 'red', 'green', 'cyan', 'magenta', 'orange', 'yellow']
-        figure, (axes) = plt.subplots(3, 1)
+        colors = ['blue', 'red', 'green', 'cyan', 'magenta', 'orange']
+        plt.figure(figsize=(40, 10))
+        figure, (axes) = plt.subplots(3, 1,figsize=(20,5))
 
+        input_for_plot = sTX
 
-        #input_for_plot = sVX.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_SENSORS)).transpose(1,0,2)[:, 0:1, :]
-        #target_for_plot = sVZ.transpose(1,0,2).reshape((-1, seqlength, st.N_EMG_TARGETS)).transpose(1,0,2)[:, 0:1, :]
-
-        input_for_plot = TX[:, test_sample:test_sample+1, :]
-        # to be able to plot the test samples in correct length we have to determine where the '0' padding starts
-        sample_length = min(np.append(len(input_for_plot), np.where(input_for_plot == np.zeros((st.N_EMG_TARGETS)))[0]))
-        #sample_length = min(np.where(input_for_plot == np.zeros((st.N_EMG_TARGETS))[0]))
-        input_for_plot = input_for_plot[:sample_length]
-        target_for_plot = TZ[:sample_length, test_sample:test_sample+1, :]
+        target_for_plot = sTZ
         result = m.predict(input_for_plot)
 
         x_axis = np.arange(input_for_plot.shape[0])
@@ -248,7 +224,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2], subsa
             axes[0].set_title('TARGETS')
             axes[0].fill_between(x_axis, 0, target_for_plot[:, 0, i], facecolor=colors[i], alpha=0.8,
                                  label=eventNames[st.SEQ_EMG_TARGETS.index(i)])
-            #axes[0].plot(x_axis, target_for_plot[:, 0, i])
+
             if test_loss:
                 axes[1].set_title('RNN (overall test loss: %f)' %(test_loss))
             else:
@@ -268,9 +244,7 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2], subsa
         axes[2].plot(np.arange(len(infos)), train_loss, label='train loss')
         axes[2].plot(np.arange(len(infos)), val_loss, label='validation loss')
         axes[2].plot(np.arange(len(infos)), test_loss, label='test loss')
-
         axes[0].legend(loc=0, shadow=True, fontsize='x-small')  # loc: 0=best, 1=upper right, 2=upper left
-
         axes[2].legend(loc=0, shadow=True, fontsize='x-small')
 
         figure.subplots_adjust(hspace=0.5)
@@ -278,8 +252,8 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2], subsa
         plt.close(figure)
 
 
-    max_passes = 200
-    max_minutes = 10
+    max_passes = 400
+    max_minutes =10
     max_iter = max_passes * sX.shape[1] / m.batch_size
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
     pause = climin.stops.ModuloNIterations(batches_per_pass * 1)  # after each pass through all data
@@ -321,7 +295,6 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2], subsa
 
             info.update({
                 'time': time.time() - start,
-                # 'spectral_radius': get_spectral_radius(m.parameters['recurrent_0']),
             })
             template = '\t'.join(
                 ['%(n_iter)i', '%(time)g', '%(loss)g', '%(val_loss)g', '%(test_loss)g'])
@@ -351,6 +324,3 @@ def test_RNN(n_neurons=100, batch_size=50, participant=[1], series=[1, 2], subsa
     logging.info('saved at: %s' % save_timestmp)
 
     plot(0, 'images/%s_emg_test0.png' % net_info, test_loss())
-    plot(1, 'images/%s_emg_test1.png' % net_info, test_loss())
-    plot(2, 'images/%s_emg_test2.png' % net_info, test_loss())
-    plot(3, 'images/%s_emg_test3.png' % net_info, test_loss())

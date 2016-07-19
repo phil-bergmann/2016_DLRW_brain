@@ -349,8 +349,7 @@ def get_eeg_emg(participant, series, data_selector=None):
     3. hold phase:              LEDOff - 2                  till LEDOff
     4. replace object:          LEDOff                      till tReplace
     5. move hand to start:      tBothRelease                till tHandStop
-    6. lift phase               tLiftOff                    till tReplace
-    7. touch phase              tFirstDigitTouch            till tBothRelease
+    6. touch phase              tFirstDigitTouch            till tBothRelease
 
     :param participant e.g. 1, [0-9]
     :param series e.g. 1, [0-9]
@@ -359,7 +358,7 @@ def get_eeg_emg(participant, series, data_selector=None):
     :return: list of dicts of eeg, emg data
     '''
 
-    eventNames = ['move hand to target', 'lift object', 'hold phase', 'replace object', 'move hand to start', 'lift phase', 'touch phase', 'hand move general']
+    eventNames = ['move hand to target', 'lift object', 'hold phase', 'replace object', 'move hand to start', 'object touched']
 
     allTrials = []
     allLifts = getRaw(r'P'+str(participant)+'_AllLifts.mat')[0].get('P')
@@ -443,12 +442,9 @@ def get_eeg_emg(participant, series, data_selector=None):
                     item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[3]] = 1
                 if key > tBothReleased and key < tHandStop and st.SEQ_EMG_TARGETS[4] != -1:
                     item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[4]] = 1
-                if key > tLiftOff and key < tReplace and st.SEQ_EMG_TARGETS[5] != -1:
+                if key > tFirstDigitTouch and key < tBothReleased and st.SEQ_EMG_TARGETS[5] != -1:
                     item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[5]] = 1
-                if key > tFirstDigitTouch and key < tBothReleased and st.SEQ_EMG_TARGETS[6] != -1:
-                    item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[6]] = 1
-                if ((key > tHandStart and key < tFirstDigitTouch) or (key > tBothReleased and key < tHandStop)) and st.SEQ_EMG_TARGETS[7] != -1:
-                    item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[7]] = 1
+
 
 
 
