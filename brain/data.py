@@ -349,6 +349,7 @@ def get_eeg_emg(participant, series, data_selector=None):
     3. hold phase:              LEDOff - 2                  till LEDOff
     4. replace object:          LEDOff                      till tReplace
     5. move hand to start:      tBothRelease                till tHandStop
+    6. touch phase              tFirstDigitTouch            till tBothRelease
 
     :param participant e.g. 1, [0-9]
     :param series e.g. 1, [0-9]
@@ -441,6 +442,8 @@ def get_eeg_emg(participant, series, data_selector=None):
                     item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[3]] = 1
                 if key > tBothReleased and key < tHandStop and st.SEQ_EMG_TARGETS[4] != -1:
                     item[1][st.N_EMG_SENSORS + st.SEQ_EMG_TARGETS[4]] = 1
+
+
 
 
         data.append({'trial_id': trial_id, 'eeg_target': eeg_dict, 'emg_target': emg_dict,
