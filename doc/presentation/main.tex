@@ -79,6 +79,9 @@
 \usepackage{graphicx} % Allows including images
 \usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
 
+\renewcommand{\footnotesize}{\fontsize{6pt}{11pt}}
+
+
 %----------------------------------------------------------------------------------------
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
@@ -90,7 +93,7 @@
 {
 Technische Universität München \\ % Your institution for the title page
 \medskip
-\textit{roman podolski@tum.de, philipp.bergmann@tum.de, dominik.irimi@gmail.com, manuel.nickel@tum.de, dehner@in.tum.de} % Your email address
+\textit{roman podolski@tum.de, philipp.bergmann@tum.de, dominik.irimi@tum.de, manuel.nickel@tum.de, dehner@in.tum.de} % Your email address
 }
 \date{\today} % Date, can be changed to a custom date
 
@@ -117,12 +120,41 @@ Technische Universität München \\ % Your institution for the title page
 
 \begin{frame}
 \frametitle{Dataset}
-Description of dataset:
+Experiment recording human grasp and lift tasks\footnote{Data source: Luciw, M. D., Jarocka, E. \& Edin, B. B. FigShare http://dx.doi.org/10.6084/m9.figshare.988376 (2014).}
 \begin{itemize}
-	\item Experiment setting
-	\item Measurement of EEG and EMG data
+	\item 12 participants, 5 different types of series recorded each
+	\item EEG: 32 electrodes recorded at 5kHz
+	\item EMG: 5 signals at 4kHz
+	\item kinetic: 36 signals at 500Hz
+	\item objects to grasp with different surface friction/weights (165g - 660g)
+	\item preprocessing: trials provided in windowed format
 \end{itemize}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[scale=.15]{experiment.png}
+%	\caption{Experimental setting}
+	\label{fig1}
+\end{figure}
 \end{frame}
+
+
+\begin{frame}
+\frametitle{Dataset}
+
+Single trial procedure:
+\begin{itemize}
+	\item event/commands signaled visually by LED to participant
+	\item participant starts moving hand to grasp position
+    \item grasp object
+    \item move to target position
+    \item hold position
+    \item move back to initial position
+    \item release object
+    \item move hand back to resting position
+\end{itemize}
+	
+\end{frame}
+
 
 %------------------------------------------------
 \section{Methodology}
