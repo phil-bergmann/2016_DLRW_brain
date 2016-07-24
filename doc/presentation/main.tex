@@ -89,11 +89,11 @@
 \title[Brain dataset]{Final Report: Brain Dataset} % The short title appears at the bottom of every slide, the full title is only on the title page
 
 \author{Roman Podolski, Philipp Bergmann, Dominik Irimi, Manuel Nickel, Christoph Dehner} % Your name
-\institute[UCLA] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+\institute[TUM] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
 {
-Technische Universität München \\ % Your institution for the title page
+Technische Universit\"at M\"unchen \\ % Your institution for the title page
 \medskip
-\textit{roman podolski@tum.de, philipp.bergmann@tum.de, dominik.irimi@tum.de, manuel.nickel@tum.de, dehner@in.tum.de} % Your email address
+\textit{roman.podolski@tum.de, philipp.bergmann@tum.de, dominik.irimi@tum.de, manuel.nickel@tum.de, dehner@in.tum.de} % Your email address
 }
 \date{\today} % Date, can be changed to a custom date
 
@@ -176,7 +176,7 @@ Data preparation
     \item Input normalization to -1/1 range (tanh activation optimization)
     \item zero padding along time line and tail cut to equalize length
     \item imagine one lifting trial as a single learning sample
-    \item separation along time into sets of 300 data point records length (Why did we do that?) 
+    \item separation along time into sets of 300 data point records length \textbf{improves learning.... Why did Smagt tell us to do that??)}
    	\item Subsampling (10Hz) of EMG data within one trial (EEG/EMG having different recording frequencies)
    	\item train/valid/test $\rightarrow$ 0.8/0.1/0.1
     \item consideration of target vector definition: one-hot-encoding vs one dim multi class vector
@@ -190,13 +190,19 @@ Recurrent Neural network
     \item assuming predictability in human planning $\rightarrow$ history matters
     \item network shape:
     \begin{itemize}
-        \item 100 neurons
+        \item 100 neurons (trial and error showed fewer will fail)
         \item 1 layer
-        \item batch size 50
+        \item no. iterations
+        \item batch size 50 (limit set by available hardware)
     \end{itemize}
     \item Bernoulli cross entropy loss at output layer
-    \item breze library\footnote{https://github.com/breze-no-salt/breze v0.1 (2016) } 
-    \item Data input shape:  X = [300 x 2428 x 5] Z = [300 x 1320 x 2]
+    \item breze library\footnote{https://github.com/breze-no-salt/breze v0.1 (2016)} 
+    \item Data vector shape
+    \begin{itemize}
+        \item input  [300 x 2428 x 5] $\rightarrow$ [slice, trial length, sensors]
+        \item target [300 x 1320 x 2] $\rightarrow$ [slice, ???, targets]
+        \item format given as breze requirement \textbf{(Does anyone in the audience care?)}
+    \end{itemize}
     \item Weight initialization
     \item Important weights
 \end{itemize}
