@@ -139,7 +139,7 @@ Experiment recording human grasp and lift tasks\footnote{Data source: Luciw, M. 
 
 
 \begin{frame}
-\frametitle{Dataset}
+\frametitle{Experiment}
 
 Experimental procedure:
 \begin{itemize}
@@ -181,35 +181,52 @@ Data preparation
         \item tail cut $\rightarrow$ targets fall of, fails to learn sometimes
     \end{itemize}
     \item separation into sets of 300 data point records length \textbf{improves learning.... Why did Smagt tell us to do that??)}
-   	\item Subsampling (10Hz) of EMG data within one trial (EEG/EMG having different recording frequencies)
-   	\item consideration of target vector definition: one-hot-encoding vs one dim multi class vector
+   	\item Subsampling (10Hz) of EMG data within one trial
+   	\item consideration of target vector definition: one dim multi class vector vs one-hot-encoding
    	\item data set split: train/valid/test $\rightarrow$ 0.8/0.1/0.1
 \end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{Methodology}
-Recurrent Neural network
+Recurrent Neural Network
 \begin{itemize}
     \item assuming predictability in human planning $\rightarrow$ history matters
     \item network shape:
     \begin{itemize}
         \item 100 neurons (trial and error showed fewer will fail)
         \item 1 layer
-        \item no. iterations
+        \item optimizer: adadelta
         \item batch size 50 (limit set by available hardware)
     \end{itemize}
     \item Bernoulli cross entropy loss at output layer
-    \item breze library\footnote{https://github.com/breze-no-salt/breze v0.1 (2016)} 
     \item Data vector shape
     \begin{itemize}
         \item input  [300 x 2428 x 5] $\rightarrow$ [slice, trial length, sensors]
         \item target [300 x 1320 x 2] $\rightarrow$ [slice, ???, targets]
-        \item format given as breze requirement \textbf{(Does anyone in the audience care?)}
+%        \item format given as breze requirement \textbf{(Does anyone in the audience care?)}
     \end{itemize}
-    \item Weight initialization
-    \item Important weights
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Methodology}
+RNN
+\begin{itemize}
+    \item Weight initialization from uniform normal dist
+    \item spectral radius
+    \item Important weights
+    \begin{itemize}
+        \item skip 150 samples till transient oscillation
+    \end{itemize}
+\end{itemize}
+
+LSTM
+\begin{itemize}
+    \item usage of breze library implementation \footnote{https://github.com/breze-no-salt/breze v0.1 (2016)} 
+    \item finally not used because satisfying results achivable by RNN already
+\end{itemize}
+
 \end{frame}
 
 %------------------------------------------------
