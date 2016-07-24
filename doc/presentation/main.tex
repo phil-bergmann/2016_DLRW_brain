@@ -144,12 +144,12 @@ Experiment recording human grasp and lift tasks\footnote{Data source: Luciw, M. 
 Experimental procedure:
 \begin{itemize}
 	\item event/commands signaled visually by LED to participant
-	\item participant starts moving hand to grasp position
+	\item participant starts moving hand to grasp object
     \item grasp object
     \item move to target position
     \item hold position
-    \item move back to initial position
-    \item release object
+    \item move object back to initial position
+    \item hand release object
     \item move hand back to resting position
 \end{itemize}
 	
@@ -174,12 +174,16 @@ t-SNE
 Data preparation
 \begin{itemize}
     \item Input normalization to -1/1 range (tanh activation optimization)
-    \item zero padding along time line and tail cut to equalize length
     \item imagine one lifting trial as a single learning sample
-    \item separation along time into sets of 300 data point records length \textbf{improves learning.... Why did Smagt tell us to do that??)}
+    \begin{itemize}
+        \item recordings have different length, therefore equalize it!
+        \item zero padding $\rightarrow$ learning in danger of being misguided
+        \item tail cut $\rightarrow$ targets fall of, fails to learn sometimes
+    \end{itemize}
+    \item separation into sets of 300 data point records length \textbf{improves learning.... Why did Smagt tell us to do that??)}
    	\item Subsampling (10Hz) of EMG data within one trial (EEG/EMG having different recording frequencies)
-   	\item train/valid/test $\rightarrow$ 0.8/0.1/0.1
-    \item consideration of target vector definition: one-hot-encoding vs one dim multi class vector
+   	\item consideration of target vector definition: one-hot-encoding vs one dim multi class vector
+   	\item data set split: train/valid/test $\rightarrow$ 0.8/0.1/0.1
 \end{itemize}
 \end{frame}
 
