@@ -257,16 +257,16 @@ def RNN_EEG(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 5
         plt.close(figure)
 
 
-    max_passes = 20
-    max_minutes = 60
+    max_passes = 30
+    max_minutes = 200
     max_iter = max_passes * sX.shape[1] / m.batch_size
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
     pause = climin.stops.ModuloNIterations(batches_per_pass * 1)  # after each pass through all data
 
     stop = climin.stops.Any([
         climin.stops.TimeElapsed(max_minutes * 60),  # maximal time in seconds
-        climin.stops.AfterNIterations(max_iter),  # maximal iterations
-        climin.stops.Patience('val_loss', batches_per_pass*10, grow_factor=1.5, threshold=0.0001),  # kind of early stopping
+        # climin.stops.AfterNIterations(max_iter),  # maximal iterations
+        # climin.stops.Patience('val_loss', batches_per_pass*10, grow_factor=1.5, threshold=0.0001),  # kind of early stopping
         # climin.stops.NotBetterThanAfter(30, 100),  # error under 30 after 100 iterations?
     ])
 
