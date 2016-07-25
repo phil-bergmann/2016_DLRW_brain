@@ -121,14 +121,16 @@ Technische Universit\"at M\"unchen \\ % Your institution for the title page
 %\subsection{Subsection Example} % A subsection can be created just before a set of slides with a common theme to further break down your presentation into chunks
 
 \begin{frame}
-\frametitle{Dataset}
+\frametitle{Dataset: WAY-EEG-GAL}
+%WAY: Wearable interfaces for hAnd function recoverY\\
+%GAL: Grasp And Lift\\
 Experiment recording human grasp and lift tasks\footnote{Data source: Luciw, M. D., Jarocka, E. \& Edin, B. B. FigShare http://dx.doi.org/10.6084/m9.figshare.988376 (2014).}
 \begin{itemize}
 	\item 12 participants, 9 series recorded each
-	\item EEG: 32 electrodes recorded at 5kHz
-	\item EMG: 5 signals at 4kHz
-	\item kinetic: 36 signals at 500Hz
-	\item objects to grasp with different surface friction/weights (165g - 660g)
+	\item EEG: 32 brain electrodes recorded at 5kHz
+	\item EMG: 5 muscle sensors at 4kHz
+	\item kinetic: 36 position/force signals at 500Hz
+	\item objects to grasp with different surface friction/weight (165-660g)
 	\item preprocessing: trials provided in windowed format (event timing relative to window)
 \end{itemize}
 \end{frame}
@@ -175,9 +177,8 @@ t-SNE
 \frametitle{Methodology}
 General developement
 \begin{itemize}
-    \item Theano (python)
-    \item climin library
-    \item breze library
+    \item Theano (Python)
+    \item libraries: climin, breze
 \end{itemize}
 
 Data preparation
@@ -225,12 +226,12 @@ Learning Targets
 \begin{itemize}
   	\item one dim multi class vector vs. mult dim one-hot-encoding
 
-    \item Selection of available events
+    \item Selection of 16 predefined events
     \begin{enumerate}
-        \item LEDOn/LEDOff: participant signal
+        \item LEDOn/LEDOff: study participant command
         \item tHandStart/tHandStop: hand moving
         \item trial\_DurReach: time needed to move hand to object
-        \item tLiftOff: lift object
+        \item tLiftOff: start lift object
         %\item LEDOff: end signal, return object
         %\item tHandStop: hand stops moving
         %\item tBothRelease: finger release object
