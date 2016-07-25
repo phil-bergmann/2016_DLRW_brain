@@ -79,6 +79,11 @@
 \usepackage{graphicx} % Allows including images
 \usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
 
+%\usepackage{multimedia}
+\usepackage{animate,media9,movie15}
+\renewcommand{\footnotesize}{\fontsize{6pt}{11pt}}
+
+
 %----------------------------------------------------------------------------------------
 %	TITLE PAGE
 %----------------------------------------------------------------------------------------
@@ -86,11 +91,11 @@
 \title[Brain dataset]{Final Report: Brain Dataset} % The short title appears at the bottom of every slide, the full title is only on the title page
 
 \author{Roman Podolski, Philipp Bergmann, Dominik Irimi, Manuel Nickel, Christoph Dehner} % Your name
-\institute[UCLA] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
+\institute[TUM] % Your institution as it will appear on the bottom of every slide, may be shorthand to save space
 {
-Technische Universität München \\ % Your institution for the title page
+Technische Universit\"at M\"unchen \\ % Your institution for the title page
 \medskip
-\textit{roman podolski@tum.de, philipp.bergmann@tum.de, dominik.irimi@gmail.com, manuel.nickel@tum.de, dehner@in.tum.de} % Your email address
+\textit{roman.podolski@tum.de, philipp.bergmann@tum.de, dominik.irimi@tum.de, manuel.nickel@tum.de, dehner@in.tum.de} % Your email address
 }
 \date{\today} % Date, can be changed to a custom date
 
@@ -116,39 +121,156 @@ Technische Universität München \\ % Your institution for the title page
 %\subsection{Subsection Example} % A subsection can be created just before a set of slides with a common theme to further break down your presentation into chunks
 
 \begin{frame}
-\frametitle{Dataset}
-Description of dataset:
+\frametitle{Dataset: WAY-EEG-GAL}
+%WAY: Wearable interfaces for hAnd function recoverY\\
+%GAL: Grasp And Lift\\
+Experiment recording human grasp and lift tasks\footnote{Data source: Luciw, M. D., Jarocka, E. \& Edin, B. B. FigShare http://dx.doi.org/10.6084/m9.figshare.988376 (2014).}
 \begin{itemize}
-	\item Experiment setting
-	\item Measurement of EEG and EMG data
+	\item 12 participants, 9 series recorded each
+	\item EEG: 32 brain electrodes recorded at 5kHz
+	\item EMG: 5 muscle sensors at 4kHz
+	\item kinetic: 36 position/force signals at 500Hz
+	\item objects to grasp with different surface friction/weight (165-660g)
+	\item preprocessing: trials provided in windowed format (event timing relative to window)
 \end{itemize}
 \end{frame}
+
+
+\begin{frame}
+\frametitle{Experiment}
+
+Single trial procedure
+\begin{itemize}
+	\item start command signaled visually by LED
+	\item participant moves hand to object
+    \item grasp object
+    \item move object to target position
+    \item hold position
+    \item LED signal, to move object back to initial position
+    \item hand release object
+    \item move hand back to resting position
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+    \frametitle{Experiment}
+    \begin{figure}
+        \includemovie[autostart,continue,controls,poster,text={\includegraphics[scale=0.45]    {images/experiment.png}}]{6cm}{6cm}{images/sdata201447-s4.avi}
+    \end{figure}
+\end{frame}
+
 
 %------------------------------------------------
 \section{Methodology}
 
 \begin{frame}
 \frametitle{Methodology}
+t-SNE
 \begin{itemize}
-\item Data preparation
+    \item expectation
+    \item result
+\end{itemize}
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Methodology}
+General developement
 \begin{itemize}
-	\item Normalization
-	\item Subsampling of EMG data
+    \item Theano (Python)
+    \item libraries: climin, breze
 \end{itemize}
-\item t-SNE
-\item RNN
+
+Data preparation
 \begin{itemize}
-\item Network shape
-\item Data input shape
-\item Weight initialization
-\item Important weights
+    \item Input normalization to -1/1 range (tanh activation optimization)
+    \item imagine one lifting trial as a single learning sample
+    \begin{itemize}
+        \item recordings have different length, therefore equalize it!
+        \item zero padding $\rightarrow$ learning in danger of being misguided
+        \item tail cut $\rightarrow$ targets fall of, fails to learn sometimes
+    \end{itemize}
+    \item separation into sets of 300 data point records length \textbf{improves learning.... Why did Smagt tell us to do that??)}
+   	\item Subsampling (10Hz) of EMG data
+   	\item Data set split: train/valid/test $\rightarrow$ 0.8/0.1/0.1
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Methodology}
+Recurrent Neural Network
+\begin{itemize}
+    \item assuming predictability in human planning $\rightarrow$ history matters
+    \item Network design:
+    \begin{itemize}
+        \item 100 neurons
+        \item 1 hidden layer
+        \item tanh activation function
+        \item 50 samples per batch
+        \item optimizer: Adadelta
+    \end{itemize}
+    \item parameter weight initialization by uniform normal distribution
+    \item spectral radius
+    \item Important weights: some samples are more important than others
+%    \begin{itemize}
+%        \item some samples are more important to learn than others
+%        \item skip first ~150 samples till transient oscillation
+%    \end{itemize}
+    \item Bernoulli cross entropy loss% at output layer
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Methodology}
+Learning Targets
+\begin{itemize}
+  	\item one dim multi class vector vs. mult dim one-hot-encoding
+
+    \item Selection of 16 predefined events
+    \begin{enumerate}
+        \item LEDOn/LEDOff: study participant command
+        \item tHandStart/tHandStop: hand moving
+        \item trial\_DurReach: time needed to move hand to object
+        \item tLiftOff: start lift object
+        %\item LEDOff: end signal, return object
+        %\item tHandStop: hand stops moving
+        %\item tBothRelease: finger release object
+    \end{enumerate}
+ 
+    \item Targets - defined over (multiple) intervals in between events
+    \begin{enumerate}
+    \item move hand to target
+        \item lift object
+        \item hold object phase
+        \item replace object
+        %\item move hand to start
+%        \item touch object phase
+    \end{enumerate}
+
+    \item Data shape
+    \begin{itemize}
+        \item Input: [time slice, features, sensors] $\rightarrow$ [300 x 2428 x 5/32]
+        \item Target: [time slice, features, targets] $\rightarrow$ [300 x 1320 x 1]
+%        \item format given as breze requirement \textbf{(Does anyone in the audience care?)}
+    \end{itemize}
+\end{itemize}
+
+%LSTM
+%\begin{itemize}
+%    \item usage of breze library implementation \footnote{https://github.com/breze-no-salt/breze v0.1 (2016)} 
+%    \item finally not used because satisfying results achivable by RNN
+%\end{itemize}
+
 \end{frame}
 
 %------------------------------------------------
 \section{Results}
 
+
+
+		
+		
+		
 \begin{frame}
 	\frametitle{Results (1): t-SNE}
 	\begin{itemize}
