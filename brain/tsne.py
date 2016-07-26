@@ -50,14 +50,14 @@ def get_ws(participant=1, series=1):
             """
 
     archive = '../' + st.DATA_PATH + 'P' + str(participant) + '.zip'
-    print('Reading ' + archive + '...')
+    print('Reading Series ' + str(series) + ' from '+ archive + '...')
     f_zip = zipfile.ZipFile(archive, 'r')
     f_mat = 'P' + str(participant) + '/WS_P'+str(participant) + '_S' + str(series) + '.mat'
     mat = extract_mat(f_zip, f_mat, relative_path='../'+st.DATA_PATH)
     return mat.get('ws')
 
 
-def get_data(windows, datatype='eeg', trials_from=1, trials_to='end', normalize_per_trial=True):
+def get_data(windows, datatype='eeg', trials_from=1, trials_to='end', normalize_per_trial=True, sparse=1):
     """ Get all data out of a given window and specified datatype as one concatenated numpy array
 
             :type windows: matlab struct
@@ -95,7 +95,7 @@ def get_data(windows, datatype='eeg', trials_from=1, trials_to='end', normalize_
 
             data_length = data_length + data_temp.shape[0]
 
-    return (data, trials, led)
+    return (data[::sparse], trials[::sparse], led[::sparse])
 
 
 def shuffle(data):
@@ -120,14 +120,16 @@ if __name__ == '__main__':
     #datatype: Specify if you want eeg or emg data
     datatype = 'eeg'
     #participant and series: Specify participant and series
-    participant = 7
-    series = 8
+    participant = 1
+    series = 1
+    no_series = 9
+    sparse = 9
     #trials_from and trials_to: Specify which trials t-SNE shall run on
     trials_from = 1
     trials_to = 'end'
     #p: perplexity
     p = 30
-    #t: theat value
+    #t: theta value
     t = 0.5
     #dpi: quality of generated plots
     dpi = 500
@@ -135,7 +137,7 @@ if __name__ == '__main__':
     directory = 'plots/tsne'
     #randomize: Shuffle the data to overcome bh-tsne weak points
     randomize = True
-    #normalize: Specify of data ought to be normalized before being applied on t-SNE
+    #normalize: Specify if data ought to be normalized before being applied on t-SNE
     normalize_data = False
     normalize_per_trial = True
 
@@ -145,7 +147,15 @@ if __name__ == '__main__':
     ws = get_ws(participant=participant, series=series)
     windows = ws.get('win')
     (data, trials, led) = get_data(windows, datatype=datatype, trials_from=trials_from, trials_to=trials_to,
-                                   normalize_per_trial=normalize_per_trial)
+                                   normalize_per_trial=normalize_per_trial, sparse=sparse)
+    for i in range(no_series - 1):
+        ws = get_ws(participant=participant, series=series + i + 1)
+        windows = ws.get('win')
+        (data_temp, trials_temp, led) = get_data(windows, datatype=datatype, trials_from=trials_from,
+                                                 trials_to=trials_to,
+                                                 normalize_per_trial=normalize_per_trial, sparse=sparse)
+        data = np.vstack((data, data_temp))
+        trials = np.concatenate((trials, trials_temp + trials[-1]))
     n = data.shape[0]
 
     #Run bh-tsne
