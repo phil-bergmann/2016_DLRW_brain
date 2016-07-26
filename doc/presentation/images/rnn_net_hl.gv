@@ -1,0 +1,308 @@
+digraph G {
+
+        rankdir=LR
+        ranksep="3.0"
+	splines=line
+        
+        node [fixedsize=true, label=""];
+        edge [penwidth="0.5", color="grey"];
+
+        subgraph cluster_0 {
+		color=white;
+		node [style=solid,color=blue4, shape=circle];
+		x1 x2 x3 x4 x5 x6;
+		// label = "layer 1 (Input layer)";
+	}
+
+	subgraph cluster_1 {
+		color=white;
+		node [style=solid,color=red2, shape=circle];
+		a1 a2 a3 a4 a5 a6 a7 a8;
+		// label = "layer 2 (hidden layer)";
+	}
+
+//subgraph cluster_2 {
+//	color=white;
+//	node [style=solid,color=red2, shape=circle];
+//	b1 b2 b3 b4 b5 b6 b7 b8;
+//	// label = "layer 2 (hidden layer)";
+//}
+//
+//subgraph cluster_3 {
+//	color=white;
+//	node [style=solid,color=red2, shape=circle];
+//	c1 c2 c3 c4 c5 c6 c7 c8;
+//	// label = "layer 2 (hidden layer)";
+//}
+	subgraph cluster_6 {
+		color=white;
+		node [style=solid,color=seagreen2, shape=circle];
+		O1, O2, O3, O4;
+		// label="layer 3 (output layer)";
+	}
+
+        x1 -> a1;
+        x1 -> a2;
+        x1 -> a3;
+        x1 -> a4;
+        x1 -> a5;
+        x1 -> a6;
+        x1 -> a7;
+        x1 -> a8;
+
+        x2 -> a1;
+        x2 -> a2;
+        x2 -> a3;
+        x2 -> a4;
+        x2 -> a5;
+        x2 -> a6;
+        x2 -> a7;
+        x2 -> a8;
+
+        x3 -> a1;
+        x3 -> a2;
+        x3 -> a3;
+        x3 -> a4;
+        x3 -> a5;
+        x3 -> a6;
+        x3 -> a7;
+        x3 -> a8;
+
+        x4 -> a1;
+        x4 -> a2;
+        x4 -> a3;
+        x4 -> a4;
+        x4 -> a5;
+        x4 -> a6;
+        x4 -> a7;
+        x4 -> a8;
+
+        x5 -> a1;
+        x5 -> a2;
+        x5 -> a3;
+        x5 -> a4;
+        x5 -> a5;
+        x5 -> a6;
+        x5 -> a7;
+        x5 -> a8;
+
+        x6 -> a1;
+        x6 -> a2;
+        x6 -> a3;
+        x6 -> a4;
+        x6 -> a5;
+        x6 -> a6;
+        x6 -> a7;
+        x6 -> a8;
+
+        a1 -> a1 [color="black"];
+        a2 -> a2 [color="black"];
+        a3 -> a3 [color="black"];
+        a4 -> a4 [color="black"];
+        a5 -> a5 [color="black"];
+        a6 -> a6 [color="black"];
+        a7 -> a7 [color="black"];
+        a8 -> a8 [color="black"];
+
+ //      a1 -> b1;
+ //      a1 -> b2;
+ //      a1 -> b3;
+ //      a1 -> b4;
+ //      a1 -> b5;
+ //      a1 -> b6;
+ //      a1 -> b7;
+ //      a1 -> b8;
+
+ //      a2 -> b1;
+ //      a2 -> b2;
+ //      a2 -> b3;
+ //      a2 -> b4;
+ //      a2 -> b5;
+ //      a2 -> b6;
+ //      a2 -> b7;
+ //      a2 -> b8;
+
+ //      a3 -> b1;
+ //      a3 -> b2;
+ //      a3 -> b3;
+ //      a3 -> b4;
+ //      a3 -> b5;
+ //      a3 -> b6;
+ //      a3 -> b7;
+ //      a3 -> b8;
+
+ //      a4 -> b1;
+ //      a4 -> b2;
+ //      a4 -> b3;
+ //      a4 -> b4;
+ //      a4 -> b5;
+ //      a4 -> b6;
+ //      a4 -> b7;
+ //      a4 -> b8;
+
+ //      a5 -> b1;
+ //      a5 -> b2;
+ //      a5 -> b3;
+ //      a5 -> b4;
+ //      a5 -> b5;
+ //      a5 -> b6;
+ //      a5 -> b7;
+ //      a5 -> b8;
+
+ //      a6 -> b1;
+ //      a6 -> b2;
+ //      a6 -> b3;
+ //      a6 -> b4;
+ //      a6 -> b5;
+ //      a6 -> b6;
+ //      a6 -> b7;
+ //      a6 -> b8;
+ //      
+ //      a7 -> b1;
+ //      a7 -> b2;
+ //      a7 -> b3;
+ //      a7 -> b4;
+ //      a7 -> b5;
+ //      a7 -> b6;
+ //      a7 -> b7;
+ //      a7 -> b8;
+
+ //      a8 -> b1;
+ //      a8 -> b2;
+ //      a8 -> b3;
+ //      a8 -> b4;
+ //      a8 -> b5;
+ //      a8 -> b6;
+ //      a8 -> b7;
+ //      a8 -> b8;
+
+ //      b1 -> b1 [color="black"];
+ //      b2 -> b2 [color="black"];
+ //      b3 -> b3 [color="black"];
+ //      b4 -> b4 [color="black"];
+ //      b5 -> b5 [color="black"];
+ //      b6 -> b6 [color="black"];
+ //      b7 -> b7 [color="black"];
+ //      b8 -> b8 [color="black"];
+
+ //      b1 -> c1;
+ //      b1 -> c2;
+ //      b1 -> c3;
+ //      b1 -> c4;
+ //      b1 -> c5;
+ //      b1 -> c6;
+ //      b1 -> c7;
+ //      b1 -> c8;
+
+ //      b2 -> c1;
+ //      b2 -> c2;
+ //      b2 -> c3;
+ //      b2 -> c4;
+ //      b2 -> c5;
+ //      b2 -> c6;
+ //      b2 -> c7;
+ //      b2 -> c8;
+ //      
+ //      b3 -> c1;
+ //      b3 -> c2;
+ //      b3 -> c3;
+ //      b3 -> c4;
+ //      b3 -> c5;
+ //      b3 -> c6;
+ //      b3 -> c7;
+ //      b3 -> c8;
+
+ //      b4 -> c1;
+ //      b4 -> c2;
+ //      b4 -> c3;
+ //      b4 -> c4;
+ //      b4 -> c5;
+ //      b4 -> c6;
+ //      b4 -> c7;
+ //      b4 -> c8;
+
+ //      b5 -> c1;
+ //      b5 -> c2;
+ //      b5 -> c3;
+ //      b5 -> c4;
+ //      b5 -> c5;
+ //      b5 -> c6;
+ //      b5 -> c7;
+ //      b5 -> c8;
+
+ //      b6 -> c1;
+ //      b6 -> c2;
+ //      b6 -> c3;
+ //      b6 -> c4;
+ //      b6 -> c5;
+ //      b6 -> c6;
+ //      b6 -> c7;
+ //      b6 -> c8;
+
+ //      b7 -> c1;
+ //      b7 -> c2;
+ //      b7 -> c3;
+ //      b7 -> c4;
+ //      b7 -> c5;
+ //      b7 -> c6;
+ //      b7 -> c7;
+ //      b7 -> c8;
+
+ //      b8 -> c1;
+ //      b8 -> c2;
+ //      b8 -> c3;
+ //      b8 -> c4;
+ //      b8 -> c5;
+ //      b8 -> c6;
+ //      b8 -> c7;
+ //      b8 -> c8;
+
+ //      c1 -> c1 [color="black"];
+ //      c2 -> c2 [color="black"];
+ //      c3 -> c3 [color="black"];
+ //      c4 -> c4 [color="black"];
+ //      c5 -> c5 [color="black"];
+ //      c6 -> c6 [color="black"];
+ //      c7 -> c7 [color="black"];
+ //      c8 -> c8 [color="black"];
+
+        a1 -> O1;
+        a1 -> O2;
+        a1 -> O3;
+        a1 -> O4;
+
+        a2 -> O1;
+        a2 -> O2;
+        a2 -> O3;
+        a2 -> O4;
+
+        a3 -> O1;
+        a3 -> O2;
+        a3 -> O3;
+        a3 -> O4;
+
+        a4 -> O1;
+        a4 -> O2;
+        a4 -> O3;
+        a4 -> O4;
+
+        a5 -> O1;
+        a5 -> O2;
+        a5 -> O3;
+        a5 -> O4;
+
+        a6 -> O1;
+        a6 -> O2;
+        a6 -> O3;
+        a6 -> O4;
+
+        a7 -> O1;
+        a7 -> O2;
+        a7 -> O3;
+        a7 -> O4;
+
+        a8 -> O1;
+        a8 -> O2;
+        a8 -> O3;
+        a8 -> O4;
+}
