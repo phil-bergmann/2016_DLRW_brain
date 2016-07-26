@@ -124,41 +124,24 @@ Technische Universit\"at M\"unchen \\ % Your institution for the title page
 \frametitle{Dataset: WAY-EEG-GAL}
 %WAY: Wearable interfaces for hAnd function recoverY\\
 %GAL: Grasp And Lift\\
-Experiment recording human grasp and lift tasks\footnote{Data source: Umea University, Schweden\cite{eeg-emg-dataset}}%\footnote{Data source: Luciw, M. D., Jarocka, E. \& Edin, B. B. FigShare http://dx.doi.org/10.6084/m9.figshare.988376 (2014).}
+Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-emg-dataset}}
 
-%\begin{itemize}
-%	\item 12 participants, 9 series recorded each
-%	\item EEG: 32 brain electrodes recorded at 5kHz
-%	\item EMG: 5 muscle sensors at 4kHz
-%	\item kinetic: 36 position/force signals at 500Hz
-%	\item grasp objects with different surface friction/weight (165-660g)
-%\end{itemize}
-
-%\begin{figure}[ht]
-%    \centering
-%    \includegraphics[scale=0.2]{images/eegelectrodes.png}
-%\end{figure}
-
-	\begin{columns}
-		\column{.65\textwidth}
-		\begin{itemize}
-        	\item 12 participants, 9 series recorded each
-        	\item EEG: 32 brain electrodes recorded at 5kHz
-        	\item EMG: 5 muscle sensors at 4kHz
-        	\item kinetic: 36 position/force signals at 500Hz
-        	\item grasp objects with different surface friction/weight (165-660g)
-        \end{itemize}
-		
-		\column{.35\textwidth}
-		\begin{figure}[ht]
-			\centering
-			\includegraphics[width=1\textwidth, trim={3.5cm 1cm 1cm 1cm},clip]{images/eegelectrodes.png}
-			\caption{EEG sensor cap}
-		\end{figure}
-	\end{columns}
-	
-
-
+\begin{columns}
+    \column{.65\textwidth}
+	\begin{itemize}
+        \item 12 participants, 9 series recorded each
+        \item EEG: 32 brain electrodes recorded at 5kHz
+        \item EMG: 5 muscle sensors at 4kHz
+        \item kinetic: 36 position/force signals at 500Hz
+        \item grasp objects with different surface friction/weight (165-660g)
+    \end{itemize}
+	\column{.35\textwidth}
+    \begin{figure}[ht]
+	    \centering
+		\includegraphics[width=1\textwidth, trim={3.5cm 1cm 1cm 1cm},clip]{images/eegelectrodes.png}
+		\caption{EEG sensor cap}%\footnote{\cite{nature}}}
+    \end{figure}
+\end{columns}
 \end{frame}
 
 
@@ -201,16 +184,10 @@ Experiment recording human grasp and lift tasks\footnote{Data source: Umea Unive
 \textbf{Data preprocessing}
 \begin{itemize}
     \item Input normalization to -1/1 range% (tanh activation optimization)
-    \item separation into sets of 300 data point records length
-   	\item Subsampling (10Hz) of EMG data
-   	\item Data set split: train/valid/test $\rightarrow$ 0.8/0.1/0.1
+    \item Separation into sets of 300 data point records length
+   	\item EMG data subsampling at 10Hz
+   	\item Cross validation split: train/valid/test $\rightarrow$ 0.8/0.1/0.1
 \end{itemize}
-
-%\begin{block}{Problem process assumption}
-%predictability in human planning infers $\rightarrow$ history matters
-%\end{block}
-
-
 \end{frame}
 
 \begin{frame}
@@ -222,7 +199,6 @@ Predictability in human planning $\rightarrow$ history matters
 
 \textbf{Recurrent Neural Network}
 \begin{itemize}
-%    \item assuming predictability in human planning $\rightarrow$ history matters
     \item Network design:
     \begin{itemize}
         \item 100 tanh neurons
@@ -237,7 +213,7 @@ Predictability in human planning $\rightarrow$ history matters
 %        \item some samples are more important to learn than others
 %        \item skip first ~150 samples till transient oscillation
 %    \end{itemize}
-    \item Bernoulli cross entropy loss% at output layer
+    \item Bernoulli cross entropy loss
 \end{itemize}
 \end{frame}
 
@@ -550,10 +526,14 @@ This statement requires citation \cite{p1}.
 %        \bibitem[Smith, 2012]{p1} John Smith (2012)
 %        \newblock Title of the publication
 %        \newblock \emph{Journal Name} 12(3), 45 -- 678.
-        
-        \bibitem[EEG-data, 2014]{eeg-emg-dataset} Luciw, M. D., Jarocka, E. \& Edin, B. B.  (2014)
-        \newblock WAY-EEG-GAL data set
-        \newblock \emph FigShare http://dx.doi.org/10.6084/m9.figshare.988376
+
+        \bibitem[nature]{nature} Matthew D Luciw, Ewa Jarocka \& Benoni B Edin
+        \newblock Multi-channel EEG recordings during 3,936 grasp and lift trials with varying weight and friction
+        \newblock \emph http://www.nature.com/articles/sdata201447, requested at: July 26th 2016
+      
+        \bibitem[EEG-GAL, 2014]{eeg-emg-dataset} Luciw, M. D., Jarocka, E. \& Edin, B. B.  (2014)
+        \newblock Data set: WAY-EEG-GAL 
+        \newblock \emph FigShare http://dx.doi.org/10.6084/m9.figshare.988376, requested at: July 26th 2016
         
     \end{thebibliography}
 }
