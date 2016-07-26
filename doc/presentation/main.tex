@@ -445,24 +445,67 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
 	\end{figure}
 \end{frame}
 
+\begin{frame}
+	\frametitle{Results of RNN: EEG data}
+	\textbf{Training with data of one participant - one target}
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[width=1.0\textwidth,trim={5cm 0cm 5cm 0cm},clip]{images/200_50_[1]_[1,2,3,4,5,6]_0_150_1_1469550907_eeg_test.png}
+		\caption{Results of RNN trained with data of participant 1, series 1-6}
+
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Results of RNN: EEG data}
+	\textbf{Training with data of more than one participant - one target}
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[width=1.0\textwidth,trim={5cm 0cm 5cm 0cm},clip]{images/200_50_[1,2]_[1,2,3]_0_150_1_1469542956_eeg_test.png}
+		\caption{Results of RNN trained with data of participants 1-2, series 1-3}
+
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Results of RNN: EEG data}
+	\textbf{Training with data of one participant - multiple targets}
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[width=1.0\textwidth,trim={5cm 0cm 5cm 0cm},clip]{images/200_50_[1]_[1,2,3,4,5,6]_0_150_1_1469560909_eeg_test.png}
+		\caption{Results of RNN trained with data of participant 1, series 1-6}
+
+	\end{figure}
+\end{frame}
+
 %------------------------------------------------
 \section{Pitfalls}
 
 \begin{frame}
 	\frametitle{Pitfalls}
 	\begin{itemize}
-		\item Prediction do not fit to the target borders exactly
 		%\item No working early stopping criterion (so far)
+		\item Huge amount of data
 		\item Limitations through Hardware
-		\item Targets "lift object" and "replace object" cannot be predicted properly
-        \item Different recording frequencies
-        \item Equalization of different length records
-        \begin{itemize}
-            \item zero padding $\rightarrow$ learning in danger of being misguided
-            \item tail cut $\rightarrow$ targets fall of, fails to learn sometimes
-        \end{itemize}
-        \item Test loss by constant factor smaller than train and validation loss
+		\item Different recording frequencies
+		\item Timespans of Targets "lift object" and "replace object" very short
+        %\item Equalization of different length records
+        %\begin{itemize}
+        %    \item zero padding $\rightarrow$ learning in danger of being misguided
+        %    \item tail cut $\rightarrow$ targets fall of, fails to learn sometimes
+        %\end{itemize}
+        \item Predictions do not fit to the target borders exactly
+        \item Test loss by constant factor smaller/bigger than train and validation loss
 	\end{itemize}
+\end{frame}
+
+%------------------------------------------------
+
+\begin{frame}
+%\frametitle{The End}
+\begin{center}
+	\textbf{\Huge{Thank You!}}
+\end{center}
 \end{frame}
 
 %------------------------------------------------
