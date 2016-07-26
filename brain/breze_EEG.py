@@ -248,7 +248,7 @@ def RNN_EEG(n_neurons=100, batch_size=50, participant=[1], series=[1, 2, 3, 4, 5
         plt.close(figure)
 
 
-    max_passes = 30
+    max_passes = 160
     max_minutes = 200
     max_iter = max_passes * sX.shape[1] / m.batch_size
     batches_per_pass = int(math.ceil(float(sX.shape[1]) / m.batch_size))
