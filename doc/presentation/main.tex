@@ -79,7 +79,7 @@
 \usepackage{graphicx} % Allows including images
 \usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
 
-\usepackage{animate,media9,movie15}
+% \usepackage{animate,media9,movie15}
 \renewcommand{\footnotesize}{\fontsize{6pt}{11pt}}
 
 
@@ -164,7 +164,7 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
 \begin{frame}
     \frametitle{Experiment}
     \begin{figure}
-        \includemovie[autostart,continue,controls,poster,text={\includegraphics[scale=0.45]    {images/experiment.png}}]{6cm}{6cm}{images/sdata201447-s4.avi}
+%        \includemovie[autostart,continue,controls,poster,text={\includegraphics[scale=0.45]    {images/experiment.png}}]{6cm}{6cm}{images/sdata201447-s4.avi}
     \end{figure}
 \end{frame}
 
@@ -364,14 +364,12 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
                 \begin{itemize}
                     \item Network design:
                     \begin{itemize}
-                        \item 100 tanh activated neurons in 1 hidden layer
-                        \item sigmoid shaped output layer neurons
-                        \item 100/200 tanh neurons
-                        \item 1 hidden layer
+                        \item 100/200 tanh activated neurons in 1 hidden layer
+                        \item sigmoidal output neurons
                         \item 50 samples per batch
                         \item optimizer: Adadelta, \(RmsProp\)
                     \end{itemize}
-                    \item Weight initialization by random uniform distribution
+                    \item Weights initialization by random uniform distribution
                 %    \item spectral radius
                     \item Important weights: 150
                 %    \begin{itemize}
