@@ -79,8 +79,7 @@
 \usepackage{graphicx} % Allows including images
 \usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
 
-%\usepackage{multimedia}
-%\usepackage{animate,media9,movie15}
+% \usepackage{animate,media9,movie15}
 \renewcommand{\footnotesize}{\fontsize{6pt}{11pt}}
 
 
@@ -121,7 +120,7 @@ Technische Universit\"at M\"unchen \\ % Your institution for the title page
 %\subsection{Subsection Example} % A subsection can be created just before a set of slides with a common theme to further break down your presentation into chunks
 
 \begin{frame}
-\frametitle{Dataset: WAY-EEG-GAL}
+        \frametitle{Dataset: WAY-EEG-GAL}
 %WAY: Wearable interfaces for hAnd function recoverY\\
 %GAL: Grasp And Lift\\
 Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-emg-dataset}}
@@ -129,6 +128,7 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
 \begin{columns}
     \column{.65\textwidth}
 	\begin{itemize}
+        \item 3,936 grasp and lift trials
         \item 12 participants, 9 series recorded each
         \item EEG: 32 brain electrodes recorded at 5kHz
         \item EMG: 5 muscle sensors at 4kHz
@@ -161,12 +161,12 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
 %\end{itemize}
 %\end{frame}
 
-%\begin{frame}
-%    \frametitle{Experiment}
-%    \begin{figure}
+\begin{frame}
+    \frametitle{Experiment}
+    \begin{figure}
 %        \includemovie[autostart,continue,controls,poster,text={\includegraphics[scale=0.45]    {images/experiment.png}}]{6cm}{6cm}{images/sdata201447-s4.avi}
-%    \end{figure}
-%\end{frame}
+    \end{figure}
+\end{frame}
 
 
 \begin{frame}
@@ -231,7 +231,7 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
 		\textbf{Attributes}
 		\begin{itemize}
 			\item Data of 34 trials
-			\item Each color stands for one trial
+			\item Each colour stands for one trial
 			\item Black spots mark \emph{Grasping}-states
 		\end{itemize}
 		\begin{block}{Conclusion}
@@ -241,7 +241,7 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
 \end{frame}
 
 \begin{frame}
-	\frametitle{Analyzing the data using t-SNE}
+	\frametitle{Analysing the data using t-SNE}
 	\textbf{Visualizing EEG data using t-SNE}
 	\begin{columns}
 		\column{.7\textwidth}
@@ -254,7 +254,7 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
 		\textbf{Attributes}
 		\begin{itemize}
 			\item Data of 34 trials
-			\item Each color stands for one trial
+			\item Each colour stands for one trial
 			\item Black spots mark \emph{Grasping}-states
 		\end{itemize}
 		\begin{block}{Conclusion}
@@ -313,20 +313,25 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
 %------------------------------------------------
 \section{Methodology}
 
-\begin{frame}{Methodology}
+\begin{frame}{Methodology RNN}
         \only<1>{
+                \begin{block}{Why RNNs?}
+                    Assuming predictability in human action $\rightarrow$ history matters
+                \end{block}
+
+                \vspace{10px}
                 \textbf{Development environment}
                 \begin{itemize}
                     \item Python, Theano, Climin, Breze, Matlab, C
                 \end{itemize}
 
-                \vspace{20px}
+                \vspace{10px}
                 \textbf{Data preprocessing}
                 \begin{itemize}
-                    \item Input normalization to -1/1 range% (tanh activation optimization)
-                    \item Separation into sets of 300 data point records length
+                    \item Input normalization to [-1;1] range
+                    \item Separation into subsets of 300 timesteps length
                         \item EMG data subsampling at 10Hz
-                        \item Cross validation split: train/valid/test $\rightarrow$ 0.8/0.1/0.1
+                        \item Cross validation split: train/validation/test $\rightarrow$ 0.8/0.1/0.1
                 \end{itemize}
         }
         \only<2-3>{
@@ -355,22 +360,18 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
                 \end{columns}
         }
         \only<4>{
-                \begin{block}{Problem process assumption}
-                Predictability in human planning $\rightarrow$ history matters
-                \end{block}
-
                 \textbf{Recurrent Neural Network}
                 \begin{itemize}
                     \item Network design:
                     \begin{itemize}
-                        \item 100 tanh neurons
-                        \item 1 hidden layer
+                        \item 100/200 tanh activated neurons in 1 hidden layer
+                        \item sigmoidal output neurons
                         \item 50 samples per batch
-                        \item optimizer: Adadelta, RmsProp
+                        \item optimizer: Adadelta, \(RmsProp\)
                     \end{itemize}
-                    \item parameter weight initialization by random uniform distribution
+                    \item Weights initialization by random uniform distribution
                 %    \item spectral radius
-                    \item Important weights: some samples are more important than others
+                    \item Important weights: 150
                 %    \begin{itemize}
                 %        \item some samples are more important to learn than others
                 %        \item skip first ~150 samples till transient oscillation
@@ -379,30 +380,30 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
                 \end{itemize}
         }
         \only<5>{
-                Learning Targets
+                \textbf{Targets}
+                \begin{columns}
+                	\begin{column}{0.5\textwidth}
                 \begin{itemize}
-                        \item one dim multi class vector vs. mult dim one-hot-encoding
-
-                    \item Selection of 16 predefined events
+                        \item one-hot-encoding
+                    \item defined by given events:
                     \begin{enumerate}
-                        \item LEDOn/LEDOff: study participant command
-                        \item tHandStart/tHandStop: hand moving
-                        \item trial\_DurReach: time needed to move hand to object
-                        \item tLiftOff: start lift object
-                        %\item LEDOff: end signal, return object
-                        %\item tHandStop: hand stops moving
-                        %\item tBothRelease: finger release object
-                    \end{enumerate}
-                 
-                    \item Targets - defined over (multiple) intervals in between events
-                    \begin{enumerate}
-                    \item move hand to target
-                        \item lift object
-                        \item hold object phase
-                        \item replace object
+                    \item Move hand to target phase
+                    \item lift object phase
+                    \item hold object phase
+                    \item replace object phase
+                    \item Move hand back to start phase
                         %\item move hand to start
                 %        \item touch object phase
                     \end{enumerate}
+                \end{itemize}
+                \end{column}
+                \begin{column}{0.5\textwidth}
+
+                    \begin{figure}[ht]
+                    	\includegraphics[width=1.0\linewidth]{images/targets.png}
+                    \end{figure}
+                \end{column}
+            \end{columns}
 
                 %    \item Data shape
                 %    \begin{itemize}
@@ -410,7 +411,7 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
                 %        \item Target: [time slice, features, targets] $\rightarrow$ [300 x 1320 x 1]
                 %%        \item format given as breze requirement \textbf{(Does anyone in the audience care?)}
                 %    \end{itemize}
-                \end{itemize}
+
 
                 %LSTM
                 %\begin{itemize}
@@ -421,11 +422,10 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
 \end{frame}
 
 
-
-		
+\section{RNN results}		
 
 \begin{frame}
-	\frametitle{Results (2): RNN on EMG data}
+	\frametitle{Results of RNN: EMG data}
 	\textbf{Training with data of one participant}
 	\begin{figure}[ht]
 		\centering
@@ -435,12 +435,12 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
 \end{frame}
 
 \begin{frame}
-	\frametitle{Results (2): RNN on EMG data}
+	\frametitle{Results of RNN: EMG data}
 	\textbf{Training with data of more than one participant}
 	\begin{figure}[ht]
 		\centering
-		\includegraphics[width=1.0\textwidth,trim={5cm 0cm 5cm 0cm},clip]{images/EMG-results_participant_1-2_series1-3.png}
-		\caption{Results of RNN trained with data of participants 1-2, series 1-3}
+		\includegraphics[width=1.0\textwidth,trim={5cm 0cm 5cm 0cm},clip]{images/EMG-results_participant_1-4_series1-2.png}
+		\caption{Results of RNN trained with data of participants 1-4, series 1-2}
 
 	\end{figure}
 \end{frame}
