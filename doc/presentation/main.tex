@@ -391,15 +391,24 @@ Learning Targets
 \end{frame}
 
 \begin{frame}
-	\frametitle{Results (2): RNN}
-	\begin{itemize}
-		\item Overview of the targets
-		\item Hand move to target works good.
-		\item Touch phase target also quite ok.
-		\item hand move back target also (partially) sucessful
-		\item Comparison: Training with data of one person vs. data of more participants
-		\item etc.
-	\end{itemize}
+	\frametitle{Results (2): RNN on EMG data}
+	Training with data of one participant:
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[width=1.0\textwidth,clip]{images/EMG-results_participant_1_series1-6.png}
+		\caption{Results of RNN trained with data of participant 1, series 1-6}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Results (2): RNN on EMG data}
+	Training with data of more than one participant:
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[width=1.0\textwidth,clip]{images/EMG-results_participant_1-2_series1-3.png}
+		\caption{Results of RNN trained with data of participants 1-2, series 1-3}
+
+	\end{figure}
 \end{frame}
 
 %------------------------------------------------
@@ -412,12 +421,13 @@ Learning Targets
 		%\item No working early stopping criterion (so far)
 		\item Limitations through Hardware
 		\item Targets like lift, grasp phase cannot be predicted properly
-        \item different recording frequencies
-        \item equalization of different length records
+        \item Different recording frequencies
+        \item Equalization of different length records
         \begin{itemize}
             \item zero padding $\rightarrow$ learning in danger of being misguided
             \item tail cut $\rightarrow$ targets fall of, fails to learn sometimes
         \end{itemize}
+        \item Test loss by constant factor smaller than train and validation loss
 	\end{itemize}
 \end{frame}
 
