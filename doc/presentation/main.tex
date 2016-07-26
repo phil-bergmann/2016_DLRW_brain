@@ -79,8 +79,7 @@
 \usepackage{graphicx} % Allows including images
 \usepackage{booktabs} % Allows the use of \toprule, \midrule and \bottomrule in tables
 
-%\usepackage{multimedia}
-%\usepackage{animate,media9,movie15}
+\usepackage{animate,media9,movie15}
 \renewcommand{\footnotesize}{\fontsize{6pt}{11pt}}
 
 
@@ -162,12 +161,12 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
 %\end{itemize}
 %\end{frame}
 
-%\begin{frame}
-%    \frametitle{Experiment}
-%    \begin{figure}
-%        \includemovie[autostart,continue,controls,poster,text={\includegraphics[scale=0.45]    {images/experiment.png}}]{6cm}{6cm}{images/sdata201447-s4.avi}
-%    \end{figure}
-%\end{frame}
+\begin{frame}
+    \frametitle{Experiment}
+    \begin{figure}
+        \includemovie[autostart,continue,controls,poster,text={\includegraphics[scale=0.45]    {images/experiment.png}}]{6cm}{6cm}{images/sdata201447-s4.avi}
+    \end{figure}
+\end{frame}
 
 
 \begin{frame}
@@ -314,8 +313,12 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
 %------------------------------------------------
 \section{Methodology}
 
-\begin{frame}{Methodology}
+\begin{frame}{Methodology RNN}
         \only<1>{
+                \begin{block}{Why RNNs?}
+                    Assuming predictability in human action $\rightarrow$ history matters
+                \end{block}
+                
                 \textbf{Development environment}
                 \begin{itemize}
                     \item Python, Theano, Climin, Breze, Matlab, C
@@ -330,7 +333,7 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
                         \item Cross validation split: train/valid/test $\rightarrow$ 0.8/0.1/0.1
                 \end{itemize}
         }
-        \only<2-3>{
+        \only<2-3>{               
                 \begin{columns}
                         \begin{column}{0.5\textwidth}
                         \textbf{Recurrent Neural Network}
@@ -356,16 +359,12 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
                 \end{columns}
         }
         \only<4>{
-                \begin{block}{Problem process assumption}
-                Predictability in human planning $\rightarrow$ history matters
-                \end{block}
-
                 \textbf{Recurrent Neural Network}
                 \begin{itemize}
                     \item Network design:
                     \begin{itemize}
-                        \item 100 tanh neurons
-                        \item 1 hidden layer
+                        \item 100 tanh activated neurons in 1 hidden layer
+                        \item sigmoid shaped output layer neurons
                         \item 50 samples per batch
                         \item optimizer: Adadelta, RmsProp
                     \end{itemize}
