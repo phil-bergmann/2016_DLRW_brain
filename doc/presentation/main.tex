@@ -169,6 +169,147 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
 %\end{frame}
 
 
+\begin{frame}
+	\frametitle{What this is all about}
+	\textbf{What are we trying to do with this dataset?}\\
+	\textbf{A:} We want to see if one can use EEG and EMG data to get an idea about the following issues: 
+	
+	\begin{itemize}
+		\item Does a participant intend to grasp the object?
+		\item Is he moving his hand \textbf{to} the object?
+		\item Is he moving \textbf{back} to the resting position?
+		\item Is he lifting the object?
+		\item Is he holding an object?
+	\end{itemize}
+	
+\end{frame}
+
+
+
+%------------------------------------------------
+\section{Analyzing the data}
+
+\begin{frame}
+	\frametitle{Analyzing the data using t-SNE}
+	\textbf{Visualizing high-dimensional EMG and EEG data using t-SNE. Why?}
+	\begin{itemize}
+		\item Get a \emph{feeling} for the data
+		\item See if notion of \emph{grasping} could possibly be captured by a Feedforward Neural Net
+	\end{itemize}
+	\begin{columns}
+		\column{.7\textwidth}
+		\begin{block}{Idea}
+			\begin{itemize}
+				\item \emph{Grasping}-states and \emph{Not Grasping}-states clustered respectively $\rightarrow$ Use Feedforward NN to classify \emph{Grasping}.
+				\item No apparent structure in the plot $\rightarrow$ Use Recurrent NN.
+			\end{itemize}
+		\end{block}
+		\column{.3\textwidth}
+		\begin{figure}[ht]
+			\centering
+			\includegraphics[width=0.8\textwidth, trim={2cm 2.5cm 2cm 2cm},clip]{images/cluster.png}
+		\end{figure}
+		\begin{figure}[ht]
+			\centering
+			\includegraphics[width=0.8\textwidth, trim={2cm 2cm 2cm 2.5cm},clip]{images/nocluster.png}
+		\end{figure}
+	\end{columns}
+	
+\end{frame}
+
+\begin{frame}
+	\frametitle{Analyzing the data using t-SNE}
+	\textbf{Visualizing EMG data using t-SNE}
+	\begin{columns}
+		\column{.7\textwidth}
+		\begin{figure}[ht]
+			\centering
+			\includegraphics[width=1.0\textwidth, trim={1.5cm 0cm 1.5cm 0cm},clip]{images/emg_tsne.png}
+		\end{figure}
+		
+		\column{.3\textwidth}
+		\textbf{Attributes}
+		\begin{itemize}
+			\item Data of 34 trials
+			\item Each color stands for one trial
+			\item Black spots mark \emph{Grasping}-states
+		\end{itemize}
+		\begin{block}{Conclusion}
+			No apparent structure $\rightarrow$ Feedforward NN not sufficient, use Recurrent NN instead.
+		\end{block}		
+	\end{columns}	
+\end{frame}
+
+\begin{frame}
+	\frametitle{Analyzing the data using t-SNE}
+	\textbf{Visualizing EEG data using t-SNE}
+	\begin{columns}
+		\column{.7\textwidth}
+		\begin{figure}[ht]
+			\centering
+			\includegraphics[width=1.0\textwidth, trim={0cm 0cm 0cm 0cm},clip]{images/eeg_tsne.png}
+		\end{figure}
+		
+		\column{.3\textwidth}
+		\textbf{Attributes}
+		\begin{itemize}
+			\item Data of 34 trials
+			\item Each color stands for one trial
+			\item Black spots mark \emph{Grasping}-states
+		\end{itemize}
+		\begin{block}{Conclusion}
+			Trials cluster $\rightarrow$ Weird? Use Feedforward NN to classify trials?
+		\end{block}		
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Classifying trials using a NN}
+	\textbf{Further analysis of EEG data}
+	\begin{block}{Verifying correct function of implementation}
+		Check code over and over, use reference data sets to make sure the plot is indeed correct $\rightarrow$ Everything seems fine
+	\end{block}
+	
+	\begin{columns}
+		\column{.6\textwidth}
+		\textbf{If there is some truth to the t-SNE plot, classification of trials should be possible}
+		\begin{block}{Classify trials using a Feedforward NN}
+			Feedforward NN with:
+			\begin{itemize}
+				\item 32 EEG electrodes as input
+				\item 300 tanh-activated hidden neurons
+				\item 34 trials as output classes
+			\end{itemize}
+		\end{block}
+		
+		\column{.4\textwidth}
+		\begin{figure}[ht]
+			\centering
+			\includegraphics[width=1.0\textwidth, trim={0cm 0cm 0cm 0cm},clip]{images/FNN.pdf}
+		\end{figure}	
+	\end{columns}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Results of the data analysis}
+	
+	\begin{block}{Results of trial classification}
+		Depending on participant and series nearly perfect classification with up to just about 0.01\% error on test set.\\
+		Even when classifying all participant 1's 296 trials still a good test error of about 15\% was achieved.
+	\end{block}
+	
+	\begin{block}{Conclusion}
+		We conclude that there indeed has to be some kind structure encoding the time of measurement within the EEG data.
+		Also, this structure is not bound by single series but seems to be of global nature.
+	\end{block}
+	
+	\begin{block}{Furthermore...}
+		Also somewhat possible to classify the \emph{intention to grasp} (LED on states). Using the NN a test error of about 9\% was achieved.
+	\end{block}
+\end{frame}
+
+
+
 %------------------------------------------------
 \section{Methodology}
 
@@ -279,135 +420,9 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
         }
 \end{frame}
 
-%------------------------------------------------
-\section{Results}
 
-\begin{frame}
-	\frametitle{Results (1): t-SNE}
-	\textbf{Visualizing high-dimensional EMG and EEG data using t-SNE. Why?}
-	\begin{itemize}
-		\item Get a \emph{feeling} for the data
-		\item See if notion of \emph{grasping} could possibly be captured by a Feedforward NN
-	\end{itemize}
-	\begin{columns}
-		\column{.7\textwidth}
-		\begin{block}{Idea}
-		\begin{itemize}
-			\item \emph{Grasping}-states and \emph{Not Grasping}-states clustered respectively $\rightarrow$ Use Feedforward NN to classify \emph{Grasping}.
-			\item No apparent structure in the plot $\rightarrow$ Use Recurrent NN.
-		\end{itemize}
-		\end{block}
-		\column{.3\textwidth}
-		\begin{figure}[ht]
-			\centering
-			\includegraphics[width=0.8\textwidth, trim={2cm 2.5cm 2cm 2cm},clip]{images/cluster.png}
-		\end{figure}
-		\begin{figure}[ht]
-			\centering
-			\includegraphics[width=0.8\textwidth, trim={2cm 2cm 2cm 2.5cm},clip]{images/nocluster.png}
-		\end{figure}
-	\end{columns}
-	
-\end{frame}
-
-\begin{frame}
-	\frametitle{Results (1): t-SNE}
-	\textbf{Visualizing EMG data using t-SNE}
-	\begin{columns}
-		\column{.7\textwidth}
-		\begin{figure}[ht]
-			\centering
-			\includegraphics[width=1.0\textwidth, trim={1.5cm 0cm 1.5cm 0cm},clip]{images/emg_tsne.png}
-		\end{figure}
-		
-		\column{.3\textwidth}
-		\textbf{Attributes}
-		\begin{itemize}
-			\item Data of 34 trials
-			\item Each color stands for one trial
-			\item Black spots mark \emph{Grasping}-states
-		\end{itemize}
-		\begin{block}{Conclusion}
-			No apparent structure $\rightarrow$ Feedforward NN not sufficient, use Recurrent NN instead.
-		\end{block}		
-	\end{columns}	
-\end{frame}
-
-\begin{frame}
-	\frametitle{Results (1): t-SNE}
-	\textbf{Visualizing EEG data using t-SNE}
-	\begin{columns}
-		\column{.7\textwidth}
-		\begin{figure}[ht]
-			\centering
-			\includegraphics[width=1.0\textwidth, trim={0cm 0cm 0cm 0cm},clip]{images/eeg_tsne.png}
-		\end{figure}
-		
-		\column{.3\textwidth}
-		\textbf{Attributes}
-		\begin{itemize}
-			\item Data of 34 trials
-			\item Each color stands for one trial
-			\item Black spots mark \emph{Grasping}-states
-		\end{itemize}
-		\begin{block}{Conclusion}
-			Trials cluster $\rightarrow$ Weird? Use Feedforward NN to classify trials?
-		\end{block}		
-	\end{columns}
-\end{frame}
-
-\begin{frame}
-	\frametitle{Results (1): t-SNE}
-	\textbf{Further analysis of EEG data}
-	\begin{block}{Verifying correct function of implementation}
-		Check code over and over, use reference data sets to make sure the plot is indeed correct $\rightarrow$ Everything seems fine
-	\end{block}
-	
-	\begin{columns}
-		\column{.6\textwidth}
-		\textbf{If there is some truth to the t-SNE plot, classification of trials should be possible}
-		\begin{block}{Classify trials using a Feedforward NN}
-			Feedforward NN with:
-			\begin{itemize}
-				\item 32 EEG electrodes as input
-				\item 300 tanh-activated hidden neurons
-				\item 34 trials as output classes
-			\end{itemize}
-		\end{block}
-		
-		\column{.4\textwidth}
-		\begin{figure}[ht]
-			\centering
-			\includegraphics[width=1.0\textwidth, trim={0cm 0cm 0cm 0cm},clip]{images/FNN.pdf}
-		\end{figure}	
-	\end{columns}
-\end{frame}
-
-\begin{frame}
-	\frametitle{Results (1): t-SNE}
-	
-	\begin{block}{Results of trial classification}
-		Depending on participant and series nearly perfect classification with up to just about 0.01\% error on test set.\\
-		Even when classifying all participant 1's 296 trials still a good test error of about 15\% was achieved.
-	\end{block}
-	
-	\begin{block}{Conclusion}
-		We conclude that there indeed has to be some kind structure encoding the time of measurement within the EEG data.
-		Also, this structure is not bound by single series but seems to be of global nature.
-	\end{block}
-\end{frame}
 
 		
-		
-		
-\begin{frame}
-	\frametitle{Results (1): t-SNE}
-	\begin{itemize}
-		\item Figure of t-SNE of EEG data $\rightarrow$ Separability of trials
-		\item Possible to separate with standard NN
-		\item Figure of t-SNE of EMG data $\rightarrow$ As expected
-	\end{itemize}
-\end{frame}
 
 \begin{frame}
 	\frametitle{Results (2): RNN on EMG data}
