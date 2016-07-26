@@ -124,33 +124,59 @@ Technische Universit\"at M\"unchen \\ % Your institution for the title page
 \frametitle{Dataset: WAY-EEG-GAL}
 %WAY: Wearable interfaces for hAnd function recoverY\\
 %GAL: Grasp And Lift\\
-Experiment recording human grasp and lift tasks\footnote{Data source: Luciw, M. D., Jarocka, E. \& Edin, B. B. FigShare http://dx.doi.org/10.6084/m9.figshare.988376 (2014).}
-\begin{itemize}
-	\item 12 participants, 9 series recorded each
-	\item EEG: 32 brain electrodes recorded at 5kHz
-	\item EMG: 5 muscle sensors at 4kHz
-	\item kinetic: 36 position/force signals at 500Hz
-	\item objects to grasp with different surface friction/weight (165-660g)
-	\item preprocessing: trials provided in windowed format (event timing relative to window)
-\end{itemize}
+Experiment recording human grasp and lift tasks\footnote{Data source: Umea University, Schweden\cite{eeg-emg-dataset}}%\footnote{Data source: Luciw, M. D., Jarocka, E. \& Edin, B. B. FigShare http://dx.doi.org/10.6084/m9.figshare.988376 (2014).}
+
+%\begin{itemize}
+%	\item 12 participants, 9 series recorded each
+%	\item EEG: 32 brain electrodes recorded at 5kHz
+%	\item EMG: 5 muscle sensors at 4kHz
+%	\item kinetic: 36 position/force signals at 500Hz
+%	\item grasp objects with different surface friction/weight (165-660g)
+%\end{itemize}
+
+%\begin{figure}[ht]
+%    \centering
+%    \includegraphics[scale=0.2]{images/eegelectrodes.png}
+%\end{figure}
+
+	\begin{columns}
+		\column{.65\textwidth}
+		\begin{itemize}
+        	\item 12 participants, 9 series recorded each
+        	\item EEG: 32 brain electrodes recorded at 5kHz
+        	\item EMG: 5 muscle sensors at 4kHz
+        	\item kinetic: 36 position/force signals at 500Hz
+        	\item grasp objects with different surface friction/weight (165-660g)
+        \end{itemize}
+		
+		\column{.35\textwidth}
+		\begin{figure}[ht]
+			\centering
+			\includegraphics[width=1\textwidth, trim={3.5cm 1cm 1cm 1cm},clip]{images/eegelectrodes.png}
+			\caption{EEG sensor cap}
+		\end{figure}
+	\end{columns}
+	
+
+
 \end{frame}
 
 
-\begin{frame}
-\frametitle{Experiment}
-
-Single trial procedure
-\begin{itemize}
-	\item start command signaled visually by LED
-	\item participant moves hand to object
-    \item grasp object
-    \item move object to target position
-    \item hold position
-    \item LED signal, to move object back to initial position
-    \item hand release object
-    \item move hand back to resting position
-\end{itemize}
-\end{frame}
+%\begin{frame}
+%\frametitle{Experiment}
+%
+%Single trial procedure
+%\begin{itemize}
+%	\item start command signaled visually by LED
+%	\item participant moves hand to object
+%    \item grasp object
+%    \item move object to target position
+%    \item hold position
+%    \item LED signal, to move object back to initial position
+%    \item hand release object
+%    \item move hand back to resting position
+%\end{itemize}
+%\end{frame}
 
 \begin{frame}
     \frametitle{Experiment}
@@ -165,52 +191,47 @@ Single trial procedure
 
 \begin{frame}
 \frametitle{Methodology}
-t-SNE
-\begin{itemize}
-    \item expectation
-    \item result
-\end{itemize}
-\end{frame}
 
-
-\begin{frame}
-\frametitle{Methodology}
-General developement
+\textbf{Developement environment}
 \begin{itemize}
-    \item Theano (Python)
-    \item libraries: climin, breze
+    \item Python, Theano, Climin, Breze, Matlab, C
 \end{itemize}
 
-Data preparation
+\vspace{20px}
+\textbf{Data preprocessing}
 \begin{itemize}
-    \item Input normalization to -1/1 range (tanh activation optimization)
-    \item imagine one lifting trial as a single learning sample
-    \begin{itemize}
-        \item recordings have different length, therefore equalize it!
-        \item zero padding $\rightarrow$ learning in danger of being misguided
-        \item tail cut $\rightarrow$ targets fall of, fails to learn sometimes
-    \end{itemize}
-    \item separation into sets of 300 data point records length \textbf{improves learning.... Why did Smagt tell us to do that??)}
+    \item Input normalization to -1/1 range% (tanh activation optimization)
+    \item separation into sets of 300 data point records length
    	\item Subsampling (10Hz) of EMG data
    	\item Data set split: train/valid/test $\rightarrow$ 0.8/0.1/0.1
 \end{itemize}
+
+%\begin{block}{Problem process assumption}
+%predictability in human planning infers $\rightarrow$ history matters
+%\end{block}
+
+
 \end{frame}
 
 \begin{frame}
 \frametitle{Methodology}
-Recurrent Neural Network
+
+\begin{block}{Problem process assumption}
+Predictability in human planning $\rightarrow$ history matters
+\end{block}
+
+\textbf{Recurrent Neural Network}
 \begin{itemize}
-    \item assuming predictability in human planning $\rightarrow$ history matters
+%    \item assuming predictability in human planning $\rightarrow$ history matters
     \item Network design:
     \begin{itemize}
-        \item 100 neurons
+        \item 100 tanh neurons
         \item 1 hidden layer
-        \item tanh activation function
         \item 50 samples per batch
-        \item optimizer: Adadelta
+        \item optimizer: Adadelta, RmsProp
     \end{itemize}
-    \item parameter weight initialization by uniform normal distribution
-    \item spectral radius
+    \item parameter weight initialization by random uniform distribution
+%    \item spectral radius
     \item Important weights: some samples are more important than others
 %    \begin{itemize}
 %        \item some samples are more important to learn than others
@@ -247,12 +268,12 @@ Learning Targets
 %        \item touch object phase
     \end{enumerate}
 
-    \item Data shape
-    \begin{itemize}
-        \item Input: [time slice, features, sensors] $\rightarrow$ [300 x 2428 x 5/32]
-        \item Target: [time slice, features, targets] $\rightarrow$ [300 x 1320 x 1]
-%        \item format given as breze requirement \textbf{(Does anyone in the audience care?)}
-    \end{itemize}
+%    \item Data shape
+%    \begin{itemize}
+%        \item Input: [time slice, features, sensors] $\rightarrow$ [300 x 2428 x 5/32]
+%        \item Target: [time slice, features, targets] $\rightarrow$ [300 x 1320 x 1]
+%%        \item format given as breze requirement \textbf{(Does anyone in the audience care?)}
+%    \end{itemize}
 \end{itemize}
 
 %LSTM
@@ -412,9 +433,15 @@ Learning Targets
 	\frametitle{Pitfalls}
 	\begin{itemize}
 		\item Prediction do not fit to the target borders exactly
-		\item No working early stopping criterion (so far)
-		\item Targets within the lift phase cannot be predicted properly
-		\item etc.
+		%\item No working early stopping criterion (so far)
+		\item Limitations through Hardware
+		\item Targets like lift, grasp phase cannot be predicted properly
+        \item different recording frequencies
+        \item equalization of different length records
+        \begin{itemize}
+            \item zero padding $\rightarrow$ learning in danger of being misguided
+            \item tail cut $\rightarrow$ targets fall of, fails to learn sometimes
+        \end{itemize}
 	\end{itemize}
 \end{frame}
 
@@ -519,19 +546,24 @@ This statement requires citation \cite{p1}.
 \begin{frame}
 \frametitle{References}
 \footnotesize{
-\begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
-\bibitem[Smith, 2012]{p1} John Smith (2012)
-\newblock Title of the publication
-\newblock \emph{Journal Name} 12(3), 45 -- 678.
-\end{thebibliography}
+    \begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
+%        \bibitem[Smith, 2012]{p1} John Smith (2012)
+%        \newblock Title of the publication
+%        \newblock \emph{Journal Name} 12(3), 45 -- 678.
+        
+        \bibitem[EEG-data, 2014]{eeg-emg-dataset} Luciw, M. D., Jarocka, E. \& Edin, B. B.  (2014)
+        \newblock WAY-EEG-GAL data set
+        \newblock \emph FigShare http://dx.doi.org/10.6084/m9.figshare.988376
+        
+    \end{thebibliography}
 }
 \end{frame}
 
-%------------------------------------------------
-
-\begin{frame}
-\Huge{\centerline{The End}}
-\end{frame}
+%%------------------------------------------------
+%
+%\begin{frame}
+%\Huge{\centerline{The End}}
+%\end{frame}
 
 %----------------------------------------------------------------------------------------
 
