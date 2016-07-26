@@ -124,33 +124,42 @@ Technische Universit\"at M\"unchen \\ % Your institution for the title page
 \frametitle{Dataset: WAY-EEG-GAL}
 %WAY: Wearable interfaces for hAnd function recoverY\\
 %GAL: Grasp And Lift\\
-Experiment recording human grasp and lift tasks\footnote{Data source: Luciw, M. D., Jarocka, E. \& Edin, B. B. FigShare http://dx.doi.org/10.6084/m9.figshare.988376 (2014).}
-\begin{itemize}
-	\item 12 participants, 9 series recorded each
-	\item EEG: 32 brain electrodes recorded at 5kHz
-	\item EMG: 5 muscle sensors at 4kHz
-	\item kinetic: 36 position/force signals at 500Hz
-	\item objects to grasp with different surface friction/weight (165-660g)
-	\item preprocessing: trials provided in windowed format (event timing relative to window)
-\end{itemize}
+Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-emg-dataset}}
+
+\begin{columns}
+    \column{.65\textwidth}
+	\begin{itemize}
+        \item 12 participants, 9 series recorded each
+        \item EEG: 32 brain electrodes recorded at 5kHz
+        \item EMG: 5 muscle sensors at 4kHz
+        \item kinetic: 36 position/force signals at 500Hz
+        \item grasp objects with different surface friction/weight (165-660g)
+    \end{itemize}
+	\column{.35\textwidth}
+    \begin{figure}[ht]
+	    \centering
+		\includegraphics[width=1\textwidth, trim={3.5cm 1cm 1cm 1cm},clip]{images/eegelectrodes.png}
+		\caption{EEG sensor cap}%\footnote{\cite{nature}}}
+    \end{figure}
+\end{columns}
 \end{frame}
 
 
-\begin{frame}
-\frametitle{Experiment}
-
-Single trial procedure
-\begin{itemize}
-	\item start command signaled visually by LED
-	\item participant moves hand to object
-    \item grasp object
-    \item move object to target position
-    \item hold position
-    \item LED signal, to move object back to initial position
-    \item hand release object
-    \item move hand back to resting position
-\end{itemize}
-\end{frame}
+%\begin{frame}
+%\frametitle{Experiment}
+%
+%Single trial procedure
+%\begin{itemize}
+%	\item start command signaled visually by LED
+%	\item participant moves hand to object
+%    \item grasp object
+%    \item move object to target position
+%    \item hold position
+%    \item LED signal, to move object back to initial position
+%    \item hand release object
+%    \item move hand back to resting position
+%\end{itemize}
+%\end{frame}
 
 %\begin{frame}
 %    \frametitle{Experiment}
@@ -163,109 +172,115 @@ Single trial procedure
 %------------------------------------------------
 \section{Methodology}
 
-\begin{frame}
-\frametitle{Methodology}
-t-SNE
-\begin{itemize}
-    \item expectation
-    \item result
-\end{itemize}
-\end{frame}
+\begin{frame}{Methodology}
+        \only<1>{
+                \textbf{Development environment}
+                \begin{itemize}
+                    \item Python, Theano, Climin, Breze, Matlab, C
+                \end{itemize}
 
+                \vspace{20px}
+                \textbf{Data preprocessing}
+                \begin{itemize}
+                    \item Input normalization to -1/1 range% (tanh activation optimization)
+                    \item Separation into sets of 300 data point records length
+                        \item EMG data subsampling at 10Hz
+                        \item Cross validation split: train/valid/test $\rightarrow$ 0.8/0.1/0.1
+                \end{itemize}
+        }
+        \only<2-3>{
+                \begin{columns}
+                        \begin{column}{0.5\textwidth}
+                        \textbf{Recurrent Neural Network}
+                                \begin{itemize}
+                                        \item deep network with recurrent connected neurons
+                                        \item suitable for sequential data
+                                        \item vanishing gradient exponentially worse
+                                        \item decay information over time
+                                \end{itemize}
+                        \end{column}
+                        \begin{column}{0.5\textwidth}
+                                \only<2>{
+                                        \begin{figure}
+                                                \includegraphics[width=.8\linewidth]{images/rnn_net.pdf}
+                                        \end{figure}
+                                }
+                                \only<3>{
+                                        \begin{figure}
+                                                \includegraphics[width=.8\linewidth]{images/rnn_net_hl.pdf}
+                                        \end{figure}
+                                }
+                        \end{column}
+                \end{columns}
+        }
+        \only<4>{
+                \begin{block}{Problem process assumption}
+                Predictability in human planning $\rightarrow$ history matters
+                \end{block}
 
-\begin{frame}
-\frametitle{Methodology}
-General developement
-\begin{itemize}
-    \item Theano (Python)
-    \item libraries: climin, breze
-\end{itemize}
+                \textbf{Recurrent Neural Network}
+                \begin{itemize}
+                    \item Network design:
+                    \begin{itemize}
+                        \item 100 tanh neurons
+                        \item 1 hidden layer
+                        \item 50 samples per batch
+                        \item optimizer: Adadelta, RmsProp
+                    \end{itemize}
+                    \item parameter weight initialization by random uniform distribution
+                %    \item spectral radius
+                    \item Important weights: some samples are more important than others
+                %    \begin{itemize}
+                %        \item some samples are more important to learn than others
+                %        \item skip first ~150 samples till transient oscillation
+                %    \end{itemize}
+                    \item Bernoulli cross entropy loss
+                \end{itemize}
+        }
+        \only<5>{
+                Learning Targets
+                \begin{itemize}
+                        \item one dim multi class vector vs. mult dim one-hot-encoding
 
-Data preparation
-\begin{itemize}
-    \item Input normalization to -1/1 range (tanh activation optimization)
-    \item imagine one lifting trial as a single learning sample
-    \begin{itemize}
-        \item recordings have different length, therefore equalize it!
-        \item zero padding $\rightarrow$ learning in danger of being misguided
-        \item tail cut $\rightarrow$ targets fall of, fails to learn sometimes
-    \end{itemize}
-    \item separation into sets of 300 data point records length \textbf{improves learning.... Why did Smagt tell us to do that??)}
-   	\item Subsampling (10Hz) of EMG data
-   	\item Data set split: train/valid/test $\rightarrow$ 0.8/0.1/0.1
-\end{itemize}
-\end{frame}
+                    \item Selection of 16 predefined events
+                    \begin{enumerate}
+                        \item LEDOn/LEDOff: study participant command
+                        \item tHandStart/tHandStop: hand moving
+                        \item trial\_DurReach: time needed to move hand to object
+                        \item tLiftOff: start lift object
+                        %\item LEDOff: end signal, return object
+                        %\item tHandStop: hand stops moving
+                        %\item tBothRelease: finger release object
+                    \end{enumerate}
+                 
+                    \item Targets - defined over (multiple) intervals in between events
+                    \begin{enumerate}
+                    \item move hand to target
+                        \item lift object
+                        \item hold object phase
+                        \item replace object
+                        %\item move hand to start
+                %        \item touch object phase
+                    \end{enumerate}
 
-\begin{frame}
-\frametitle{Methodology}
-Recurrent Neural Network
-\begin{itemize}
-    \item assuming predictability in human planning $\rightarrow$ history matters
-    \item Network design:
-    \begin{itemize}
-        \item 100 neurons
-        \item 1 hidden layer
-        \item tanh activation function
-        \item 50 samples per batch
-        \item optimizer: Adadelta
-    \end{itemize}
-    \item parameter weight initialization by uniform normal distribution
-    \item spectral radius
-    \item Important weights: some samples are more important than others
-%    \begin{itemize}
-%        \item some samples are more important to learn than others
-%        \item skip first ~150 samples till transient oscillation
-%    \end{itemize}
-    \item Bernoulli cross entropy loss% at output layer
-\end{itemize}
-\end{frame}
+                %    \item Data shape
+                %    \begin{itemize}
+                %        \item Input: [time slice, features, sensors] $\rightarrow$ [300 x 2428 x 5/32]
+                %        \item Target: [time slice, features, targets] $\rightarrow$ [300 x 1320 x 1]
+                %%        \item format given as breze requirement \textbf{(Does anyone in the audience care?)}
+                %    \end{itemize}
+                \end{itemize}
 
-\begin{frame}
-\frametitle{Methodology}
-Learning Targets
-\begin{itemize}
-  	\item one dim multi class vector vs. mult dim one-hot-encoding
-
-    \item Selection of 16 predefined events
-    \begin{enumerate}
-        \item LEDOn/LEDOff: study participant command
-        \item tHandStart/tHandStop: hand moving
-        \item trial\_DurReach: time needed to move hand to object
-        \item tLiftOff: start lift object
-        %\item LEDOff: end signal, return object
-        %\item tHandStop: hand stops moving
-        %\item tBothRelease: finger release object
-    \end{enumerate}
- 
-    \item Targets - defined over (multiple) intervals in between events
-    \begin{enumerate}
-    \item move hand to target
-        \item lift object
-        \item hold object phase
-        \item replace object
-        %\item move hand to start
-%        \item touch object phase
-    \end{enumerate}
-
-    \item Data shape
-    \begin{itemize}
-        \item Input: [time slice, features, sensors] $\rightarrow$ [300 x 2428 x 5/32]
-        \item Target: [time slice, features, targets] $\rightarrow$ [300 x 1320 x 1]
-%        \item format given as breze requirement \textbf{(Does anyone in the audience care?)}
-    \end{itemize}
-\end{itemize}
-
-%LSTM
-%\begin{itemize}
-%    \item usage of breze library implementation \footnote{https://github.com/breze-no-salt/breze v0.1 (2016)} 
-%    \item finally not used because satisfying results achivable by RNN
-%\end{itemize}
-
+                %LSTM
+                %\begin{itemize}
+                %    \item usage of breze library implementation \footnote{https://github.com/breze-no-salt/breze v0.1 (2016)} 
+                %    \item finally not used because satisfying results achivable by RNN
+                %\end{itemize}
+        }
 \end{frame}
 
 %------------------------------------------------
 \section{Results}
-
 
 \begin{frame}
 	\frametitle{Results (1): t-SNE}
@@ -388,22 +403,31 @@ Learning Targets
 \begin{frame}
 	\frametitle{Results (1): t-SNE}
 	\begin{itemize}
-		\item Figure of t-SNE of EEG data $\rightarrow$ Seperability of trials
+		\item Figure of t-SNE of EEG data $\rightarrow$ Separability of trials
 		\item Possible to separate with standard NN
 		\item Figure of t-SNE of EMG data $\rightarrow$ As expected
 	\end{itemize}
 \end{frame}
 
 \begin{frame}
-	\frametitle{Results (2): RNN}
-	\begin{itemize}
-		\item Overview of the targets
-		\item Hand move to target works good.
-		\item Touch phase target also quite ok.
-		\item hand move back target also (partially) sucessful
-		\item Comparison: Training with data of one person vs. data of more participants
-		\item etc.
-	\end{itemize}
+	\frametitle{Results (2): RNN on EMG data}
+	\textbf{Training with data of one participant}
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[width=1.0\textwidth,trim={5cm 0cm 5cm 0cm},clip]{images/EMG-results_participant_1_series1-6.png}
+		\caption{Results of RNN trained with data of participant 1, series 1-6}
+	\end{figure}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Results (2): RNN on EMG data}
+	\textbf{Training with data of more than one participant}
+	\begin{figure}[ht]
+		\centering
+		\includegraphics[width=1.0\textwidth,trim={5cm 0cm 5cm 0cm},clip]{images/EMG-results_participant_1-2_series1-3.png}
+		\caption{Results of RNN trained with data of participants 1-2, series 1-3}
+
+	\end{figure}
 \end{frame}
 
 %------------------------------------------------
@@ -413,9 +437,16 @@ Learning Targets
 	\frametitle{Pitfalls}
 	\begin{itemize}
 		\item Prediction do not fit to the target borders exactly
-		\item No working early stopping criterion (so far)
-		\item Targets within the lift phase cannot be predicted properly
-		\item etc.
+		%\item No working early stopping criterion (so far)
+		\item Limitations through Hardware
+		\item Targets "lift object" and "replace object" cannot be predicted properly
+        \item Different recording frequencies
+        \item Equalization of different length records
+        \begin{itemize}
+            \item zero padding $\rightarrow$ learning in danger of being misguided
+            \item tail cut $\rightarrow$ targets fall of, fails to learn sometimes
+        \end{itemize}
+        \item Test loss by constant factor smaller than train and validation loss
 	\end{itemize}
 \end{frame}
 
@@ -520,19 +551,28 @@ This statement requires citation \cite{p1}.
 \begin{frame}
 \frametitle{References}
 \footnotesize{
-\begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
-\bibitem[Smith, 2012]{p1} John Smith (2012)
-\newblock Title of the publication
-\newblock \emph{Journal Name} 12(3), 45 -- 678.
-\end{thebibliography}
+    \begin{thebibliography}{99} % Beamer does not support BibTeX so references must be inserted manually as below
+%        \bibitem[Smith, 2012]{p1} John Smith (2012)
+%        \newblock Title of the publication
+%        \newblock \emph{Journal Name} 12(3), 45 -- 678.
+
+        \bibitem[nature]{nature} Matthew D Luciw, Ewa Jarocka \& Benoni B Edin
+        \newblock Multi-channel EEG recordings during 3,936 grasp and lift trials with varying weight and friction
+        \newblock \emph http://www.nature.com/articles/sdata201447, requested at: July 26th 2016
+      
+        \bibitem[EEG-GAL, 2014]{eeg-emg-dataset} Luciw, M. D., Jarocka, E. \& Edin, B. B.  (2014)
+        \newblock Data set: WAY-EEG-GAL 
+        \newblock \emph FigShare http://dx.doi.org/10.6084/m9.figshare.988376, requested at: July 26th 2016
+        
+    \end{thebibliography}
 }
 \end{frame}
 
-%------------------------------------------------
-
-\begin{frame}
-\Huge{\centerline{The End}}
-\end{frame}
+%%------------------------------------------------
+%
+%\begin{frame}
+%\Huge{\centerline{The End}}
+%\end{frame}
 
 %----------------------------------------------------------------------------------------
 
