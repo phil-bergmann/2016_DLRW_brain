@@ -100,7 +100,7 @@ class MLP(object):
 
 
 
-def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=20,
+def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=200,
              batch_size=100, n_hidden=300, optimizer='GradientDescent', activation=T.tanh, a=(1, -0.98), b=(1, -1)):
 
     #---- Configure ----
@@ -111,7 +111,8 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=20,
     trials_from = 1
     trials_to = 'end'
     normalize_data = False
-    normalize_per_trial = False
+    normalize_per_trial = True
+    keep_test_unshuffled = False
     #-------------------
 
     """error_lists = [None, None]
@@ -131,29 +132,46 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=20,
     for i in range(no_series-1):
         ws = get_ws(participant=participant, series=series+i+1)
         windows = ws.get('win')
-        (data_temp, trials_temp, led) = get_data(windows, datatype=datatype, trials_from=trials_from, trials_to=trials_to,
+        (data_temp, trials_temp, led_temp) = get_data(windows, datatype=datatype, trials_from=trials_from, trials_to=trials_to,
                                    normalize_per_trial=normalize_per_trial)
         data = np.vstack((data, data_temp))
         trials = np.concatenate((trials, trials_temp + trials[-1]))
+        led = np.concatenate((led, led_temp))
 
+    #Convert led vector to contain 0 for LEDoff and 1 for LEDon
+    led_temp = np.zeros((data.shape[0], ))
+    led_temp[led] = 1
+    led = led_temp
+
+    #For classifying LEDon / LEDoff uncomment following line
+    trials = led + 1
 
     # Filtering
     #a = (1, -0.98)
     #b = (1, -1)
-    data = signal.filtfilt(b, a, data)
+    #data = signal.filtfilt(b, a, data)
 
 
-    if normalize_data:
-        data[...] = normalize(data)
-    (temp, undo_shuffle) = shuffle(np.c_[data, trials - 1])
     n = data.shape[0]
     n_train = 4 * n // 9
     n_valid = 2 * n // 9
     n_test = n - n_train - n_valid
 
+    if normalize_data:
+        data[...] = normalize(data)
+    if keep_test_unshuffled:
+        (temp, undo_shuffle) = shuffle(np.c_[data[:n_train+n_valid], trials[:n_train+n_valid] - 1])
+        test_set_x, test_set_y = [data[n_train+n_valid:], trials[n_train+n_valid:] - 1]
+    else:
+        (temp, undo_shuffle) = shuffle(np.c_[data, trials - 1])
+        test_set_x, test_set_y = (temp[n_train + n_valid:, :data.shape[1]], temp[n_train + n_valid:, data.shape[1]:])
+
     train_set_x, train_set_y = (temp[:n_train, :data.shape[1]], temp[:n_train, data.shape[1]:])
     valid_set_x, valid_set_y = (temp[n_train:n_train+n_valid, :data.shape[1]], temp[n_train:n_train+n_valid, data.shape[1]:])
-    test_set_x, test_set_y = (temp[n_train+n_valid:, :data.shape[1]], temp[n_train+n_valid:, data.shape[1]:])
+
+
+    #Use following line for NOT shuffled test data
+    #test_set_x, test_set_y = (data[n_train + n_valid:, :data.shape[1]], data[n_train + n_valid:, data.shape[1]:])
 
     # Reshaping data from (n,1) to (n,)
     train_set_y = train_set_y.reshape(train_set_y.shape[0],)
@@ -163,7 +181,7 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=20,
 
 
     n_train_batches = train_set_x.shape[0] // batch_size
-    #print('Building the Model...')
+    print('Building the Model...')
 
     x = T.matrix('x')
     y = T.ivector('y')
@@ -217,7 +235,7 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=20,
         args = ((i, {}) for i in climin.util.iter_minibatches([train_set_x, train_set_y], batch_size, [0, 0]))
 
     if optimizer=='GradientDescent':
-        #print('Running GradientDescent')
+        print('Running GradientDescent')
         opt = climin.GradientDescent(flat, d_loss, step_rate=0.01, momentum=0.95, args=args)
     elif optimizer=='RmsProp':
         print('Running RmsProp')
@@ -245,8 +263,14 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=20,
         allow_input_downcast=True
     )
 
-    #print('Running Optimization...\n')
-    #print('Classifying %d classes' % n_out)
+    p_y_given_x = theano.function(
+        inputs=[x],
+        outputs=classifier.logRegressionLayer.p_y_given_x,
+        allow_input_downcast=True
+    )
+
+    print('Running Optimization...\n')
+    print('Classifying %d classes' % n_out)
 
     patience = 10000
     patience_increase = 2
@@ -295,7 +319,7 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=20,
 
 
 
-            #print('\nEpoch %i, Validation Error:\t %f%%' % (epoch, this_validation_loss))
+            print('\nEpoch %i, Validation Error:\t %f%%' % (epoch, this_validation_loss))
 
             if this_validation_loss < best_validation_loss:
                 if (this_validation_loss < best_validation_loss * improvement_threshold):
@@ -305,7 +329,8 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=20,
                 best_test_score = test_score
                 best_iter = iter
 
-                #print(('Epoch %i, Test Error:\t %f%% \t NEW MODEL') % (epoch, test_score))
+                print(('Epoch %i, Test Error:\t %f%% \t NEW MODEL') % (epoch, test_score))
+                p_LEDon = p_y_given_x(test_set_x)[:,1]
                 #with open('model.pkl', 'wb') as f:
                     #print('Dump Model')
                 #    pickle.dump(model, f)
@@ -313,7 +338,7 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=20,
             if (epoch >= n_epochs) or done_looping:
                 break
 
-            #print ('')
+            print ('')
 
         if patience <= iter:
             done_looping = True
@@ -331,7 +356,7 @@ def test_mlp(learning_rate=0.01, L1_reg=0.00, L2_reg=0.0001, n_epochs=20,
     print(('The code for file ' + os.path.split(__file__)[1] + ' ran for %.2fm' % ((end_time - start_time) / 60.)), file=sys.stderr)
 
         #error_lists[i] = (train_error_list, valid_error_list, test_error_list)
-    return (train_error_list, valid_error_list, test_error_list), (best_validation_loss, best_test_score)
+    return (train_error_list, valid_error_list, test_error_list), (best_validation_loss, best_test_score), (test_set_y, p_LEDon)
     #return error_lists, (best_validation_loss, best_test_score)
 
 
@@ -395,6 +420,27 @@ def plot_error_curves2(error_lists1, error_lists2, best_scores, args=('Sigmoid',
     plt.show()
 
 
+def plot_LEDon(LED):
+    LEDon, p_LEDon = LED
+
+    fig, [plt_Y, plt_p_Y] = plt.subplots(2, figsize=(20,6))
+
+    x = np.arange(p_LEDon.shape[0])
+
+    plt_Y.fill_between(x, 0, LEDon, edgecolor='b')
+    plt_Y.set_title('LED states - 0: LED is off, 1: LED is on')
+    #plt_Y.ylabel('LED state')
+    #plt_Y.xlabel('EEG data points')
+    plt_p_Y.fill_between(x, 0, p_LEDon, edgecolor='b')
+    plt_p_Y.set_title('Prediction of intention to grasp')
+    #plt_p_Y.ylabel('Intention to grasp')
+    #plt_p_Y.xlabel('EEG data points')
+
+    fig.canvas.set_window_title('LED states')
+
+    plt.show()
+
+
 def optimize_filtfilt(activation, optimizer, step_size=0.01, n=5):
     a = (1, -0.98)
     b = (1, -1)
@@ -432,7 +478,8 @@ if __name__ == '__main__':
     activation = T.tanh
     #activation = T.nnet.relu
     optimizer = 'GradientDescent'
-    optimize_filtfilt(activation=activation, optimizer=optimizer)
-    #lists, best_scores = test_mlp(activation=activation, optimizer=optimizer)
-    #plot_error_curves(lists, best_scores, args=('tanh', optimizer))
+    #optimize_filtfilt(activation=activation, optimizer=optimizer)
+    lists, best_scores, LED = test_mlp(activation=activation, optimizer=optimizer)
+    plot_error_curves(lists, best_scores, args=('tanh', optimizer))
+    plot_LEDon(LED)
     #plot_error_curves2(lists[0], lists[1], best_scores, args=('tanh', optimizer))
