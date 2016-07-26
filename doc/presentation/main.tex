@@ -319,18 +319,19 @@ Experiment recording human grasp and lift tasks\footnote{Data source: \cite{eeg-
                     Assuming predictability in human action $\rightarrow$ history matters
                 \end{block}
                 
+                \vspace{10px}
                 \textbf{Development environment}
                 \begin{itemize}
                     \item Python, Theano, Climin, Breze, Matlab, C
                 \end{itemize}
 
-                \vspace{20px}
+                \vspace{10px}
                 \textbf{Data preprocessing}
                 \begin{itemize}
-                    \item Input normalization to -1/1 range% (tanh activation optimization)
-                    \item Separation into sets of 300 data point records length
+                    \item Input normalization to [-1;1] range
+                    \item Separation into subsets of 300 timesteps length
                         \item EMG data subsampling at 10Hz
-                        \item Cross validation split: train/valid/test $\rightarrow$ 0.8/0.1/0.1
+                        \item Cross validation split: train/validation/test $\rightarrow$ 0.8/0.1/0.1
                 \end{itemize}
         }
         \only<2-3>{               
