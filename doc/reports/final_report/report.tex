@@ -129,16 +129,17 @@ Important weights are used to meet different fractions of contribution by inputs
 300 slice size separation
 cross validation set split size: train, valid, test
 target composition
+subsampling
 
 \section{Methodology}
 The time-dependent experiment setting on the one hand and the results from the t-SNE in chapter \ref{sec:tsne} on the other hand, motivate to use a recurrent neural network (RNN). In comparison to a feed forward neural network, such a network contains recurrent connections within the hidden layer and thus saves a state between different inputs. By this way, the output does not only depend on the actual input but gets time-sensitive an is also influenced by previous inputs.
 
-\section{Recurrent Neural Network design}
+\subsection{Recurrent Neural Network design}
 For implementation of a recurrent neural network Breze \cite{breze} is used. Based on python \cite{python}, Theano \cite{theano} and Climin \cite{climin}, this library provides useful functionality to implement and train neural networks. The implemented network consists of one hidden layer with tanh activated neurons and sigmoidal output neurons. For the EMG data 100 inner neurons are used, for the EEG data 200. The weights are initialized by a random uniform distribution with  expectation $0$ variance $0.1$. The network is trained in minibatches of size 50 with the optimizer Adadelta with $0.9$ memory decay, $0.9$ momentum, $1e-6$ offset and a step rate of $0.1$. Another optimizer that performs well in this constellation is RmsProp.
 
-The network learning progress by calculating the gradient based upon data record slices of size $300$ feet into the network, minds the subsampling rate of $10Hz$ of EMG data. Having a shorter view in history, so lowering the subsampling rate alike lowering the the subset size below $300$ records, showed results of lowering quality.\\
+The network learning progress by calculating the gradient based upon data record slices of size $300$ fed into the network, minds the subsampling rate of $10Hz$ of EMG data. Having a shorter view in history, so lowering the subsampling rate alike lowering the the subset size below $300$ records, showed results of lowering quality.
 
-Finally the data get split up for cross validation into set of size $80$ for training and $10$ each for validation and test.\\
+Finally the data get split up for cross validation into set of size $80$ for training and $10$ each for validation and test.
 
 
 
