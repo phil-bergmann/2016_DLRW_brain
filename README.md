@@ -5,10 +5,10 @@ The Braintrust
 * Run brain/\_\_main\_\_.py to configure and execute training on EMG and EEG data. 
 * breze_RNN.py EMG training implementation
 * breze_EEG.py EEG training implementation
-* global static configurations for breze RNN training: globals.py
+* globals.py global static variables
 * data preprocessing: data.py (no explicit call necessary)
 
-____Configuration____
+#### Configuration ####
 Overwrite default values calling _RNN_EEG/test_RNN_ method
 
 * n_neurons: number of neurons per hidden layer
@@ -32,7 +32,7 @@ Overwrite default values calling _RNN_EEG/test_RNN_ method
 * C implementation within /windows subdirectory
 
 #### Miscellaneous ####
-* data will be downloaded into /data and extracted to /matlab by initial execution 
+* data will be downloaded into /data and extracted to /data/matlab by initial execution 
 * detailed final report and presentation within /doc subdirectory
 * t-SNE examination report within /doc/reports/eeg_curiosities
 
