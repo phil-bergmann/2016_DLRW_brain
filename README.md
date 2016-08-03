@@ -32,6 +32,8 @@ Overwrite default values calling _RNN_EEG/test_RNN_ method
 * C implementation within /windows subdirectory
 
 #### Miscellaneous ####
+* data source: https://ndownloader.figshare.com/files/3229301
+* data documentation: http://www.nature.com/articles/sdata201447
 * data will be downloaded into /data and extracted to /data/matlab by initial execution 
 * detailed final report and presentation within /doc subdirectory
 * t-SNE examination report within /doc/reports/eeg_curiosities
