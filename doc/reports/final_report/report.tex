@@ -142,8 +142,8 @@ neuronen, layer, optimizer, activation, ....
 The targets for the RNN are defined by specific time events given in the dataset. For the experiments of this paper, the following five targets were used:
 \begin{enumerate}
 	\item Move hand to target phase: Event "Hand starts to move"  until event "First digit touches the object"
-	\item Lift object phase: Event "Object lifts off" until event "Object reaches the metallic ring"
-	\item Hold object phase: Event "Object reaches the metallic ring" until event "LED is switched off"
+	\item Lift object phase: Event "Object lifts off" until event "Object reaches final lift position"
+	\item Hold object phase: Event "Object reaches final lift position" until event "LED is switched off"
 	\item Replace object phase: Event "LED is switched off" until event "object is replaced back"
 	\item Move hand back to start phase: Event "Both fingers released the object" until event "Hand stopped to move"
 \end{enumerate}
