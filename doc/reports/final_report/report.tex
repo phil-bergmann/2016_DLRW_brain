@@ -58,7 +58,7 @@ Philipp Bergmann \\
 The \emph{WAY-EEG-GAL} dataset is designed to allow testing of techniques to decode sensation, intention and action from scalp EEG recordings in humans who perform a grasp-and-lift task. In this paper we present our methodology to analyze the data and how we tackled the problem of classifying various stages of these tasks by using a RNN on EEG and EMG data. In particular we present particular findings in the EEG data and successes as well as pitfalls concerning the RNN runs.
 \end{abstract}
 
-\section{About the WAY-EEG-GAL dataset}
+\section{About the WAY-EEG-GAL dataset}\label{sec:tsne}
 In order to allow for critical evaluations of the utility of EEG signals for prosthetic control of object manipulation, the \emph{Wearable interfaces for hAnd function recoverY - EEG - Grisp And Lift (WAY-EEG-GAL)} dataset was created. In particular, it can be used to inter alia examine at what degree it is possible to identify the intention to reach and grasp, hand positions and velocities or that the object's properties have unexpectedly changed. The data was collected during the course of a series of experiments in which twelve right-handed individuals, both male and female, were selected as participants. Each participant was seated at a desk with his hand resting on the table. An LED signaled the person to reach for a small object, grasp it using his index finger and thumb, lift it up a few centimetres, hold it for a brief moment and finally return the object as well as his hand to their intial positions. In this paper, we will from now on refer to this sequence of events and actions as a \emph{trial}. \\
 Each participant then conducted $328$ such trials under slight but to the participant unpredictably changing circumstances. That is, the object's weight to be lifted was augmented through an electromagnet, resulting in weights of $165$, $330$ or $660 g$. Furthermore, the contact surface changed to be made of sandpaper, suede or silk. Depending on the specific trial, either only the surface, only the object's weight, both or none changed. In order to record kinematics, forces, muscle activations and brain activity, four types of sensors were used during the experiments. In particular, an electroencephalography (EEG) cap, illustrated in figure \ref{fig:eeg_setup}, with $32$ electrodes was used to record the brain activity during the trials, sampling at $500 Hz$. Furthermore, five electromyography (EMG) sensors, as depicted in figure \ref{fig:emg_setup}, were placed on the participant's right arm to measure muscle activity at a sample rate of $4 kHz$.\\
 \begin{figure}
@@ -119,7 +119,7 @@ As unexpected as these results may be, they do not neccessarily mean that the EE
 
 
 \section{Data preprocessing}
-The raw data provided as described by [1] was structured into Matlab files of type \textit{HS} for each participant and series. Containing all the data in a single lifting series. Whereas \textit{WS} files supplying preprocessed data, organizing single trials in time windows for every participant and series type. Additional information like event timing are offered by \textit{AllLifts} files per study participant. Based on this sources the neural network implementation, explained in the following section, can be loaded with various selected combinations of participants and series.\\ In the first step all input data of the same type (e.g EEG, EMG) was scaled and normalized to zero mean. Single data point records had to be mapped to points in time, as those is provided separately.\\
+The raw data provided as described by \cite{nature} was structured into Matlab files of type \textit{HS} for each participant and series. Containing all the data in a single lifting series. Whereas \textit{WS} files supplying preprocessed data, organizing single trials in time windows for every participant and series type. Additional information like event timing are offered by \textit{AllLifts} files per study participant. Based on this sources the neural network implementation, explained in the following section, can be loaded with various selected combinations of participants and series.\\ In the first step all input data of the same type (e.g EEG, EMG) was scaled and normalized to zero mean. Single data point records had to be mapped to points in time, as those is provided separately.\\
 Based on the provided event timings, the associated target to a data point could be defined as a one-hot-encoding vector for every single label. The definition of a single multi class vector did not satisfy for various reasons, which are shown later, but especially the overlapping of classes along the time line, did ban this solution quickly. Finally 6 targets have been defined over time intervals of event time differences. \\The data points timings within the windowed version from \textit{WS} files are synchronized at the beginning and cut to trials, but comparing still their number of records isn't exactly equal. As for learning the format must be consistent, there are two options how to handle inconsistency. In a first approach the shorter trials where filled up with zeros at the end, aiming to keep as much information to learn from as possible. But as the network is not able to distinguish between padding and real information, it will learn from the padding as well which lead it to fail. The second option takes a stab at cutting the longer trials in purpose of selecting the minimum complete coverage recordings containing valuable information. Hence in some cases information get lost and learning fails but on the other hand the result is more precise in the meaning of learning only real data.\\ Muscle activity from 5 EMG sensors was obtained at 4kHz sampling rate. As obvious by visual inspection of raw signals, significant changes are following more sluggish behaviour. Thus subsampling the raw data allows to speed up learning by reducing the amount of data, without loss of information. The simplest method considered without any interpolation just skips records of odd indices. \\ 
 
 Important weights are used to meet different fractions of contribution by inputs. Some are more important than others. The first inputs of every trial are skipped, and do not contribute to the gradient as it takes some time till initial oscillation decays. A size of 150 initial steps was chosen.
@@ -128,18 +128,16 @@ Important weights are used to meet different fractions of contribution by inputs
 cross validation set split size: train, valid, test
 target composition
 
+\section{Methodology}
+The time-dependent experiment setting on the one hand and the results from the t-SNE in chapter \ref{sec:tsne} on the other hand, motivate to use a recurrent neural network (RNN). In comparison to a feed forward neural network, such a network contains recurrent connections within the hidden layer and thus saves a state between different inputs. By this way, the output does not only depend on the actual input but gets time-sensitive an is also influenced by previous inputs.
 
-\section{Recurrent Neural Network design}
-For implementation of a recurrent neural network Python [3] and the library Theano [3] with extension of Climin [5] for the networks parameter weight initialization by random uniform distribution was used. Furthermore implementations of various RNNs is provided by Breze [6] and used to extend the initial from scratch attempt.
-
-bernoulli cross entropy loss
-spectral radius
-neuronen, layer, optimizer, activation, ....
-
+\subsection{Recurrent Neural Network design}
+For implementation of a recurrent neural network Breze \cite{breze} is used. Based on python \cite{python}, Theano \cite{theano} and Climin \cite{climin}, this library provides useful functionality to implement and train neural networks.\\
+The implemented network consists of one hidden layer with tanh activated neurons and sigmoidal output neurons. For the EMG data 100 inner neurons are used, for the EEG data 200. The weights are initialized by a random uniform distribution with  expectation $0$ variance $0.1$. The network is trained with the optimizer Adadelta and minibatches of size 50. Another optimizer that performs well in this constellation is RmsProp.
 
 
 \subsection{Targets}
-The targets for the RNN are defined by specific time events given in the dataset. For the experiments of this paper, the following five targets were used:
+The targets for the RNN are defined by specific time events given in the dataset. For the experiments of this paper, the following five targets are used:
 \begin{enumerate}
 	\item Move hand to target phase: Event "Hand starts to move"  until event "First digit touches the object"
 	\item Lift object phase: Event "Object lifts off" until event "Object reaches final lift position"
@@ -150,7 +148,7 @@ The targets for the RNN are defined by specific time events given in the dataset
 The targets for the RNN are represented by a one-hot-encoding scheme. Each target is represented by a separate target vector, stating for each time step if the target is active or not.
 
 \section{Results}
-All our RNNs were trained to predict the previously defined targets using EMG or EEG data. In this chapter, at first the results with EMG data and then the results using EEG data are presented.
+All our RNNs are trained to predict the previously defined targets using EMG or EEG data. In this chapter, at first the results with EMG data and then the results using only EEG data are presented.
 \subsection{Results using EMG-data}
 Figure \ref{fig:emg_RNN_1} shows the results of a RNN trained with six data series of particpant 1. In the first two plots the expected target vectors and the prediction of the RNN are compared. The third plot illustrates the train, validation and test error during the training epochs.\\
 
