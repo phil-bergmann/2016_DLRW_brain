@@ -171,7 +171,7 @@ Figure \ref{fig:emg_RNN_1} shows the results of a RNN trained with six data seri
 It can be seen that the RNN can learn the general experiment procedure out of the EMG data greatly. Each predicted sequence of the five targets corresponds to exactly one trial in the target vector. Out of the five targets, the move-hand-to-target phase, the lift-object phase and the move-hand-back-to-start phase are predicted very well. Except for some inaccuracies at the borders, these targets are always predicted correctly. The other two targets, the lift-object phase and the replace object phase, are not predicted very well. A reasonable explanation for this behaviour could be, that the targets are to small be learned properly during the training in this setting with one-hot-encoded targets and the Bernoulli loss.
 \begin{figure}
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/EMG-results_participant_1_series1-6.png}
+	\includegraphics[trim=5.2cm 0.5cm 5cm 0.5cm, clip=true, width=1.0\textwidth]{images/EMG-results_participant_1_series1-6.png}
 	\caption{Results of RNN trained with data of participant 1, series 1-6}
 	\label{fig:emg_RNN_1}
 \end{figure}
@@ -179,7 +179,7 @@ It can be seen that the RNN can learn the general experiment procedure out of th
 So far, all this observations are made on results of a RNN, which was trained with data of just one participant. Do demonstrate that predicting the targets with data of more than one participant works similarly fine, figure \ref{fig:emg_RNN_2} visualizes the results of a RNN trained with data of four different participants. Compared to figure \ref{fig:emg_RNN_1}, the RNN with data of more participants produces lower amplitudes. However, the structure of the predictions does not change and still fits similarly well to the target vectors.
 \begin{figure}
 	\centering
-	\includegraphics[width=1.0\textwidth]{images/EMG-results_participant_1-4_series1-2.png}
+	\includegraphics[trim=5.2cm 0.5cm 5cm 0.5cm, clip=true, width=1.0\textwidth]{images/EMG-results_participant_1-4_series1-2.png}
 	\caption{Results of RNN trained with data of participant 1-4, series 1-2}
 	\label{fig:emg_RNN_2}
 \end{figure}
