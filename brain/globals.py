@@ -1,5 +1,5 @@
 # TODO: move this to a config.ini file
-DATA_PATH = 'data/'
+DATA_PATH = 'dataset/'
 IMAGE_PATH = 'images/'
 MAT_SUBDIR = 'matfiles/'
 P_FILE_REGEX = 'P*.zip'
@@ -18,10 +18,8 @@ SEQ_EEG_TARGETS = [0, 1, 2, 3, 4]
 # must be set correctly
 N_EEG_TARGETS = 5
 
-
 N_EEG_TIMESTEPS = 6200
 N_EMG_TIMESTEPS = 50000
 
 STRIDE_LEN = 300
-
 STRIDE_LEN_EEG = 300

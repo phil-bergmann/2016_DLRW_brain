@@ -349,7 +349,6 @@ def get_eeg_emg(participant, series, data_selector=None):
     3. hold phase:              LEDOff - 2                  till LEDOff
     4. replace object:          LEDOff                      till tReplace
     5. move hand to start:      tBothRelease                till tHandStop
-    6. touch phase              tFirstDigitTouch            till tBothRelease
 
     :param participant e.g. 1, [0-9]
     :param series e.g. 1, [0-9]
