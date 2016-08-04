@@ -104,13 +104,13 @@ Figure \ref{fig:emg_tsne} shows the t-SNE plot for the $34$ trials of participan
 	\begin{minipage}{0.5\textwidth}
 		\centering
 		\includegraphics[width=1.0\textwidth]{images/emg_tsne.png}
-		\caption{t-SNE plot for EMG data}
+		\caption{Randomly distributed data points in the case of EMG data when plotted through t-SNE.}
 		\label{fig:emg_tsne}
 	\end{minipage}\hfill
-	\begin{minipage}{0.5\textwidth}
+	\begin{minipage}{0.49\textwidth}
 		\centering
 		\includegraphics[width=1.0\textwidth]{images/eeg_tsne.png}
-		\caption{t-SNE plot for EEG data}
+		\caption{Significant clustering of trials in the case of EEG data when plotted through t-SNE. Different colours indicate different trials.}
 		\label{fig:eeg_tsne}
 	\end{minipage}
 \end{figure}
@@ -126,7 +126,7 @@ The above results suggest, that indeed information about the time of measurement
 Moreover, classification of trials turned out to be possible not only within a single series but over many more, too. For this, a Neural Net run was performed on the entire EEG data of participant $1$, comprising $294$ trials in total. This resulted in a test error of $15.65\%$, which seems still rather impressive considering that now there are many more classes than input neurons which the Neural Net can draw information from.
 Thus, of whatever kind the structure within the EEG data distinguishing the trials may be, it is not bounded by individual series but seems to be of global nature.
 
-As unexpected as these results may be, they do not neccessarily mean that the EEG dataset is entirely corrupted, as we will see in the following sections.
+As unexpected as these results may be, they do not neccessarily mean that the EEG dataset is entirely corrupted, as we will see in the following sections. Furthermore, the clustering of LEDon and LEDoff-states respectively in figure \ref{fig:eeg_tsne} suggests that classification of \emph{grasping} and \emph{not grasping} should be possible through a Feedforward Neural Net, too. For participant 1, series 1 indeed a test error of $9.09\%$ was achieved.  
 
 \section{Methodology}
 The time-dependent experiment setting on the one hand and the results from the t-SNE in chapter \ref{sec:tsne} on the other hand, motivate to use a recurrent neural network (RNN). In comparison to a feed forward neural network, such a network contains recurrent connections within the hidden layer and thus saves a state between different inputs. By this way, the output does not only depend on the actual input but gets time-sensitive an is also influenced by previous inputs.

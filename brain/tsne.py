@@ -49,7 +49,8 @@ def get_ws(participant=1, series=1):
             :param series: Specifies for which series data shall be returned
             """
 
-    archive = '../' + st.DATA_PATH + 'P' + str(participant) + '.zip'
+    #archive = '../' + st.DATA_PATH + 'P' + str(participant) + '.zip'
+    archive = '../' + 'data/' + 'P' + str(participant) + '.zip'
     print('Reading Series ' + str(series) + ' from '+ archive + '...')
     f_zip = zipfile.ZipFile(archive, 'r')
     f_mat = 'P' + str(participant) + '/WS_P'+str(participant) + '_S' + str(series) + '.mat'
