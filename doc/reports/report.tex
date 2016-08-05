@@ -227,7 +227,7 @@ The same network was used to predict the labels solely based on the 32 channel E
 
 Figure \ref{fig:eeg_RNN_1} shows the RNN trained on one person with the move hand to target label only, as it's performance was good on previous experiments. It can be seen that the RNN is capable to find a structure in the EEG data to predict the labels correctly. It almost always shows a reaction on the right time, but the outputs don't have the right shape anymore and thus prediction of the timespan of the event is not possible. On the other side the RNN now is prone to false responses and reacts more often than it should. It seems that on a few test samples the performance is especially poor, as it's output is quite high on the whole trial and correct prediction of the event becomes infeasible. When trained on more than one person the performance of the RNN decreases. It still can be seen that it reacts on the right times of the events but the output becomes very noisy.
 
-On Figure \ref{fig:eeg_RNN_2} the RNN was trained on all 5 targets. Like on the EMG data the lift-object phase and the replace object phase could not be predicted very well. The other 3 targets are also very noisy, but one can see that the RNN is able to find a structure in the data to predict these labels.
+On Figure \ref{fig:eeg_RNN_2} the RNN was trained with all 5 targets. Like before with the EMG data the lift-object phase and the replace object phase could not be predicted very well. The other 3 targets are also very noisy, but one can see that the RNN is able to find a structure in the data to predict these labels.
 
 \begin{figure}
 	\centering
