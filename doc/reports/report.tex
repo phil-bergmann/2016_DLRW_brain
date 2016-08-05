@@ -191,15 +191,6 @@ To archive this, Breze requires the test and validation set to be provided as ma
 Thus, the train and validation set is cut to a multiple of 300 and then reshaped.
 
 \section{Results}
-%TODO: Es waere echt cool fuer die EMG und EEG error rates tables zu haben, die eine einfache uebersicht ueber die error rates geben.
-%\begin{table}[htpb]
-        %\centering
-        %\caption{Test error for EMG-Data}
-        %\label{tab:label}
-        %\begin{tabular}{c}
-        
-        %\end{tabular}
-%\end{table}
 All our RNNs are trained to predict the previously defined targets using EMG or EEG data.
 In this chapter, at first the results with EMG data and then the results using only EEG data are presented.
 \subsection{Results using EMG-data}
@@ -234,20 +225,31 @@ However, the structure of the predictions does not change and still fits similar
 \subsection{Results using EEG-data}
 
 \section{Summary}
-Using tSNE we were able to show that EEG measurements from the same trial create clusters in the stochastic neighbourhood embedding.
-%This clustering of data is time independent and proofs that indeed there is a not sequential order in the dataset present.
+Using tSNE it was shown that EEG measurements from the same trial form clusters in the stochastic neighbourhood embedding.
 A Feed-Forward-Artificial-Neural-Network was used to classify single trials from the EEG data and on this task an error rate of under 2\% was archive.
-Our contibution to the analysis of the WAY-EEG-GAL dataset it the proof that there is a time independent and not-sequential order in the dataset present.
-We assume that this structure is bounded to mesurements from the same trial.
-To finde the cause for this clustering further research is necessary.
+The contribution of this work to the analysis of the WAY-EEG-GAL dataset it the proof that there is not-sequential order in the dataset present.
+The provided plots and experiments yield the assumption that this structuring is based on the time of measurement, since measurements from the same trial cluster together.
+To find the discrete cause for this clustering further research is necessary.
 
-Further we showed that the WAY-EEG-GAL dataset can be used to learn a classifier for a stream of sequential EEG/EMG data to distinguish phases in grasp-and-lift motions.
-By using a Recurrent Artificial Neural Network we reached a classification error for upto 21\% on th EMG data and 30\% on the EEG data.
-For the EMG data we were able to distinguish 5 different phases for each trial, while for the EEG data we only detected the hand movement to the object.
-Target phases with a long duration where easily detectable by our approach, while short phases remained mostly undetected.
-We assume that a better encoding of the target vectors
+Further this work showers that the WAY-EEG-GAL dataset can be used to learn a classifier for a stream of sequential EEG/EMG data to distinguish phases in grasp-and-lift motions.
+By using a Recurrent Artificial Neural Network for the EMG data the classifier were able to distinguish 5 different phases for each trial,
+while for the EEG data it only detected the hand movement to the object.
+This work therefore proofs the concept of detecting intention of movement from EEG/EMG data by using a Recurrent Artificial Neural Network based classifier.
+Nevertheless, this concept faces some downfalls.
 
-%TO BE CONTINUED
+Target phases with a long duration where easily detectable by this approach, while short phases remained mostly undetected.
+Since Recurrent Neural Networks threat data input as a sequential stream of signals, short \textit{spikes} may not be recognised as significant.
+It's likely that the Network threats those short signals similar to random noise.
+Therefore the certainty level of the corresponding output class does not grow over an recognisable threshold. 
+A better design of the targets used for training the model or modifications to the model itself, which take this consideration into account, may overcome this problem.
+
+For the EEG data one may criticise the overall design of the targets used to train the model.
+It is not possible to detect the exact phases were a participant develops the intention to apply movement.
+The design used is only an approximation based on external events and stimuli which signal the participant to apply movement.
+For the EMG Data this approach works fine, since discrete muscle contractions are measured and a clear correlation between those contractions and the applied movement can be found.
+Regarding EEG data it is possible that the model did not use the signals, corresponding to the development of movement, but those which correspond to the processing of stimuli which are associated with the phase of the experiment.
+In that case the EEG classifier could only be applied in the same scenario, as it was practiced in the experiments \cite{nature}.
+To exclude this possibility, the model would have to be tested on the ability to transfer it's knowledge to a similar, but not identical domain.
 
 \begin{thebibliography}{9}
 	\bibitem{nature} 
