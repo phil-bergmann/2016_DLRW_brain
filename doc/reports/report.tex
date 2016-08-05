@@ -62,7 +62,7 @@ Particular findings in the EEG data and successes as well as pitfalls concerning
 
 \section{About the WAY-EEG-GAL dataset}
 \label{sec:data}
-In order to allow for critical evaluations of the utility of EEG signals for prosthetic control of object manipulation, the \emph{Wearable interfaces for hAnd function recoverY - EEG - Grasp And Lift (WAY-EEG-GAL)} dataset was created. In particular, it can be used to examine to what extent it is possible to identify the intention to reach and grasp, hand positions and velocities or that the object's properties have unexpectedly changed. The data was collected during a series of experiments, for which twelve right-handed individuals, both male and female, were selected as participants. Each participant was seated at a desk with his hand resting on the table. An LED signalled the person to reach for a small object, grasp it using his index finger and thumb, lift it up a few centimetres, hold it for a brief moment and finally return the object as well as his hand to their initial positions. In this paper, this sequence of events and actions will from now on be refered to as one \emph{trial}.
+In order to allow for critical evaluations of the utility of EEG signals for prosthetic control of object manipulation, the \emph{Wearable interfaces for hAnd function recoverY - EEG - Grasp And Lift (WAY-EEG-GAL)} dataset was created. In particular, it can be used to examine to what extent it is possible to identify the intention to reach and grasp, hand positions and velocities or that the object's properties have unexpectedly changed. The data was collected during a series of experiments, for which twelve right-handed individuals, both male and female, were selected as participants. Each participant was seated at a desk with his hand resting on the table. A LED signalled the person to reach for a small object, grasp it using his index finger and thumb, lift it up a few centimetres, hold it for a brief moment and finally return the object as well as his hand to their initial positions. In this paper, this sequence of events and actions will from now on be refered to as one \emph{trial}.
 
 Each participant conducted $328$ such trials under slightly and to the participant unpredictably changing circumstances. That is, the object's weight to be lifted was augmented through an electromagnet, resulting in weights of $165$, $330$ or $660 g$. Furthermore, the contact surface changed to be made of sandpaper, suede or silk. Depending on the specific trial, either only the surface, only the object's weight, both or none changed. In order to record kinematics, forces, muscle activations and brain activity, four types of sensors were used during the experiments. In particular, an electroencephalography (EEG) cap, illustrated in figure \ref{fig:eeg_setup}, with $32$ electrodes was used to record the brain activity during the trials, sampling at $500 Hz$. Furthermore, five electromyography (EMG) sensors, as depicted in figure \ref{fig:emg_setup}, were placed on the participant's right arm to measure muscle activity at a sample rate of $4 kHz$.
 \begin{figure}
@@ -259,7 +259,7 @@ Nevertheless, this concept faces some downfalls.
 Target phases with a long duration where easily detectable by this approach, while short phases remained mostly undetected.
 Since Recurrent Neural Networks treat data input as a sequential stream of signals, short \textit{spikes} may not be recognised as significant.
 It is likely that the Network threats those short signals similar to random noise.
-Therefore the certainty level of the corresponding output class does not grow over an recognisable threshold. 
+Therefore the certainty level of the corresponding output class does not grow over a recognisable threshold. 
 A better design of the targets used for training the model or modifications to the model itself, which take this consideration into account, may overcome this problem.
 
 For the EEG data one may criticise the overall design of the targets used to train the model.
@@ -268,7 +268,7 @@ The design used is only an approximation based on external events and stimuli wh
 For the EMG Data this approach works fine, since discrete muscle contractions are measured and a clear correlation between those contractions and the applied movement can be found.
 Regarding EEG data it is possible that the model did not use the signals, corresponding to the development of movement, but those which correspond to the processing of stimuli which are associated with the phase of the experiment.
 In that case the EEG classifier could only be applied in the same scenario, as it was practised in the experiments \cite{nature}.
-To exclude this possibility, the model would have to be tested on the ability to transfer it's knowledge to a similar, but not identical domain.
+To exclude this possibility, the model would have to be tested on the ability to transfer its knowledge to a similar, but not identical domain.
 
 \begin{thebibliography}{9}
 	\bibitem{nature} 
