@@ -59,7 +59,7 @@ The \emph{WAY-EEG-GAL} dataset is designed to allow testing of techniques to dec
 \end{abstract}
 
 \section{About the WAY-EEG-GAL dataset}\label{sec:data}
-In order to allow for critical evaluations of the utility of EEG signals for prosthetic control of object manipulation, the \emph{Wearable interfaces for hAnd function recoverY - EEG - Grasp And Lift (WAY-EEG-GAL)} dataset was created. In particular, it can be used to examine to what extent it is possible to identify the intention to reach and grasp, hand positions and velocities or that the object's properties have unexpectedly changed. The data was collected during a series of experiments, for which twelve right-handed individuals, both male and female, were selected as participants. Each participant was seated at a desk with his hand resting on the table. An LED signalled the person to reach for a small object, grasp it using his index finger and thumb, lift it up a few centimetres, hold it for a brief moment and finally return the object as well as his hand to their initial positions. In this paper, we will from now on refer to this sequence of events and actions as one \emph{trial}.
+In order to allow for critical evaluations of the utility of EEG signals for prosthetic control of object manipulation, the \emph{Wearable interfaces for hAnd function recoverY - EEG - Grasp And Lift (WAY-EEG-GAL)} dataset was created. In particular, it can be used to examine to what extent it is possible to identify the intention to reach and grasp, hand positions and velocities or that the object's properties have unexpectedly changed. The data was collected during a series of experiments, for which twelve right-handed individuals, both male and female, were selected as participants. Each participant was seated at a desk with his hand resting on the table. An LED signalled the person to reach for a small object, grasp it using his index finger and thumb, lift it up a few centimetres, hold it for a brief moment and finally return the object as well as his hand to their initial positions. In this paper, this sequence of events and actions will be referred to as one \emph{trial}.
 
 Each participant then conducted $328$ such trials under slightly and to the participant unpredictably changing circumstances. That is, the object's weight to be lifted was augmented through an electromagnet, resulting in weights of $165$, $330$ or $660 g$. Furthermore, the contact surface changed to be made of sandpaper, suede or silk. Depending on the specific trial, either only the surface, only the object's weight, both or none changed. In order to record kinematics, forces, muscle activations and brain activity, four types of sensors were used during the experiments. In particular, an electroencephalography (EEG) cap, illustrated in figure \ref{fig:eeg_setup}, with $32$ electrodes was used to record the brain activity during the trials, sampling at $500 Hz$. Furthermore, five electromyography (EMG) sensors, as depicted in figure \ref{fig:emg_setup}, were placed on the participant's right arm to measure muscle activity at a sample rate of $4 kHz$.
 \begin{figure}
@@ -95,9 +95,9 @@ Then, one of these possible outcomes is expected to be observed:
 	\item The LEDon-states are grouped together in one place while the LEDoff-states are grouped in another place:
 	This may be interpreted as a sign that it is possible to extract information about the intention to grasp from individual data points. As t-SNE does not \emph{understand} relations in time, even a simple Feedforward Net might work.
 	\item All data points are distributed randomly and there is no apparent structure in the plot:
-	This would signal that if there is a way to extract information about the intention to grasp, then it is not sufficient to use Feedforward Nets only. Instead, one needs to at least incorporate time relations. Thus, we try using Recurrent Neural Nets.
+	This would signal that if there is a way to extract information about the intention to grasp, then it is not sufficient to use Feedforward Nets only. Instead, one needs to at least incorporate time relations. Thus, Recurrent Neural Nets are used.
 \end{itemize}
-Figure \ref{fig:emg_tsne} shows the t-SNE plot for the $34$ trials of participant $1$, series $1$. Clearly, all data points are distributed randomly and no particular grouping is to be seen. Following the reasoning described above, we conclude that using a Feedforward Neural Net cannot suffice to extract the grasping notion out of the EMG data.
+Figure \ref{fig:emg_tsne} shows the t-SNE plot for the $34$ trials of participant $1$, series $1$. Clearly, all data points are distributed randomly and no particular grouping is to be seen. Following the reasoning described above, it can be concluded that using a Feedforward Neural Net cannot suffice to extract the grasping notion out of the EMG data.
 \begin{figure}
 	\centering
 	\begin{minipage}{0.5\textwidth}
@@ -151,13 +151,13 @@ The targets for the RNN are represented by a one-hot-encoding scheme. Each targe
 
 
 \section{Data preprocessing}
-The data we use in our experiments is provided by \cite{nature} in \textit{WS} files, structured in series for each participant es described in chapter \ref{sec:data}. Based on this sources the neural network implementation can be configured to loaded various combinations of participants and series. Before the network starts to train, the data is preprocessed as described in the following.
+The data used in our experiments of this paper is provided by \cite{nature} in \textit{WS} files, structured in series for each participant es described in chapter \ref{sec:data}. Based on this sources the neural network implementation can be configured to loaded various combinations of participants and series. Before the network starts to train, the data is preprocessed as described in the following.
 
 \subsection{Normalization}
 In the first step all input data of the same type (e.g. EEG, EMG) is scaled and normalized to zero mean. Single data point records have to be mapped to points in time, as those are provided separately.
 
 \subsection{Subsampling}
-Muscle activity from the five EMG sensors are obtained at 4kHz sampling rate. As obvious by visual inspection of raw signals, significant changes are following more sluggish behaviour. Thus, subsampling the raw data allows to speed up learning by reducing the amount of data, without significant loss of information. The simplest method considered without any interpolation just skips records of odd indices. In our experiments we subsampled by this way with factor 10.
+Muscle activity from the five EMG sensors are obtained at 4kHz sampling rate. As obvious by visual inspection of raw signals, significant changes are following more sluggish behaviour. Thus, subsampling the raw data allows to speed up learning by reducing the amount of data, without significant loss of information. The simplest method considered without any interpolation just skips records of odd indices. In experiments of this paper, the data is subsampled by this way with factor 10.
 
 \subsection{Splitting and reshaping}
 After normalization and subsampling, the data is split up for cross validation into a set of size $80\%$ for training and two sets of size $10\%$ each for validation and testing.
