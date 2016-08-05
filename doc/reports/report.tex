@@ -131,7 +131,13 @@ As unexpected as these results may be, they do not neccessarily mean that the EE
 The time-dependent experiment setting on the one hand and the results from the t-SNE in chapter \ref{sec:tsne} on the other hand, motivate to use a recurrent neural network (RNN). In comparison to a feed forward neural network, such a network contains recurrent connections within the hidden layer and thus saves a state between different inputs. By this way, the output does not only depend on the actual input but gets time-sensitive an is also influenced by previous inputs.
 
 \subsection{Recurrent Neural Network design}
-For implementation of a recurrent neural network Breze \cite{breze} is used. Based on python \cite{python}, Theano \cite{theano} and Climin \cite{climin}, this library provides useful functionality to implement and train neural networks. The implemented network consists of one hidden layer with tanh activated neurons and sigmoidal output neurons. For the EMG data 100 inner neurons are used, for the EEG data 200. The weights are initialized by a random uniform distribution with  expectation $0$ variance $0.1$. The network is trained in minibatches of size 50 with the optimizer Adadelta with $0.9$ memory decay, $0.9$ momentum, $1e-6$ offset and a step rate of $0.1$. Another optimizer that performs well in this constellation is RmsProp.
+For implementation of a recurrent neural network Breze \cite{breze} is used.
+Based on python \cite{python}, Theano \cite{theano} and Climin \cite{climin}, this library provides useful functionality to implement and train neural networks.
+The implemented network consists of one hidden layer with tanh activated neurons and sigmoidal output neurons.
+For the EMG data 100 inner neurons are used, for the EEG data 200.
+The weights are initialized by a random uniform distribution with expectation $0$ variance $0.1$.
+The network is trained in minibatches of size 50 with the optimizer Adadelta with $0.9$ memory decay, $0.9$ momentum, $1e-6$ offset and a step rate of $0.1$
+. Another optimizer that performs well in this constellation is RmsProp.
 
 During the learning progress, the network performs an error back-propagation after $300$ data points are fed into the network. In combination with the subsampling rate, which will be discussed in the next chapter, this data slice size proved to be a good compromise between the depth of the network during the back-propagation and the period of time, the network can look in the past.
 
@@ -148,13 +154,16 @@ The targets for the RNN are defined by specific time events given in the dataset
 \end{enumerate}
 The targets for the RNN are represented by a one-hot-encoding scheme. Each target is represented by a separate target vector, stating for each time step if the target is active or not.
 
-
-
 \section{Data preprocessing}
-The data used in our experiments of this paper is provided by \cite{nature} in \textit{WS} files, structured in series for each participant es described in chapter \ref{sec:data}. Based on this sources the neural network implementation can be configured to loaded various combinations of participants and series. Before the network starts to train, the data is preprocessed as described in the following.
+The data we use in our experiments is provided by \cite{nature}.
+Those files are structured in series for each participant a windowed format of each trial series, described in \ref{sec:data}.
+
+Based on these sources the neural network implementation can be configured to load various combinations of participants and series.
+Before the network starts to train, the data is preprocessed as described in the following.
 
 \subsection{Normalization}
-In the first step all input data of the same type (e.g. EEG, EMG) is scaled and normalized to zero mean. Single data point records have to be mapped to points in time, as those are provided separately.
+In the first step all input data of the same type (e.g. EEG, EMG) is scaled and normalized to zero mean.
+Single data point records have to be mapped to points in time, as those are provided separately.
 
 \subsection{Subsampling}
 Muscle activity from the five EMG sensors are obtained at 4kHz sampling rate. As obvious by visual inspection of raw signals, significant changes are following more sluggish behaviour. Thus, subsampling the raw data allows to speed up learning by reducing the amount of data and without loosing relevant information for the result. The simplest implementation is create a subset of records by a regular frequency without interpolation. In experiments of this paper, the data is by this way with 10Hz.
@@ -162,23 +171,33 @@ Muscle activity from the five EMG sensors are obtained at 4kHz sampling rate. As
 \subsection{Splitting and reshaping}
 After normalization and subsampling, the data is split up for cross validation into a set of size $80\%$ for training and two sets of size $10\%$ each for validation and testing.
 
-In our neuronal network implementation, error back-propagation should be performed after 300 data samples. To archive this, Breze requires the test and validation set to be provided as matrix in the shape $(300 \times \# \textnormal{back-propagations in one epoch} \times \# \textnormal{targets)}$. Thus, the train and validation set is cut to a multiple of 300 and then reshaped.
+In our neuronal network implementation, error back-propagation should be performed after 300 data samples.
+To archive this, Breze requires the test and validation set to be provided as matrix in the shape $(300 \times \# \textnormal{back-propagations in one epoch} \times \# \textnormal{targets)}$.
+Thus, the train and validation set is cut to a multiple of 300 and then reshaped.
 
 \section{Results}
 %TODO: Es waere echt cool fuer die EMG und EEG error rates tables zu haben, die eine einfache uebersicht ueber die error rates geben.
-\begin{table}[htpb]
-        \centering
-        \caption{Test error for EMG-Data}
-        \label{tab:label}
-        \begin{tabular}{c}
+%\begin{table}[htpb]
+        %\centering
+        %\caption{Test error for EMG-Data}
+        %\label{tab:label}
+        %\begin{tabular}{c}
         
-        \end{tabular}
-\end{table}
-All our RNNs are trained to predict the previously defined targets using EMG or EEG data. In this chapter, at first the results with EMG data and then the results using only EEG data are presented.
+        %\end{tabular}
+%\end{table}
+All our RNNs are trained to predict the previously defined targets using EMG or EEG data.
+In this chapter, at first the results with EMG data and then the results using only EEG data are presented.
 \subsection{Results using EMG-data}
-Figure \ref{fig:emg_RNN_1} shows the results of a RNN trained with six data series of particpant 1. In the first two plots the expected target vectors and the prediction of the RNN are compared. The third plot illustrates the train, validation and test error during the training epochs.
+Figure \ref{fig:emg_RNN_1} shows the results of a RNN trained with six data series of particpant 1.
+In the first two plots the expected target vectors and the prediction of the RNN are compared.
+The third plot illustrates the train, validation and test error during the training epochs.
 
-It can be seen that the RNN can learn the general experiment procedure out of the EMG data greatly. Each predicted sequence of the five targets corresponds to exactly one trial in the target vector. Out of the five targets, the move-hand-to-target phase, the lift-object phase and the move-hand-back-to-start phase are predicted very well. Except for some inaccuracies at the borders, these targets are always predicted correctly. The other two targets, the lift-object phase and the replace object phase, are not predicted very well. A reasonable explanation for this behaviour could be, that the targets are to small be learned properly during the training in this setting with one-hot-encoded targets and the Bernoulli loss.
+It can be seen that the RNN can learn the general experiment procedure out of the EMG data greatly.
+Each predicted sequence of the five targets corresponds to exactly one trial in the target vector.
+Out of the five targets, the move-hand-to-target phase, the lift-object phase and the move-hand-back-to-start phase are predicted very well.
+Except for some inaccuracies at the borders, these targets are always predicted correctly.
+The other two targets, the lift-object phase and the replace object phase, are not predicted very well.
+A reasonable explanation for this behaviour could be, that the targets are to small be learned properly during the training in this setting with one-hot-encoded targets and the Bernoulli loss.
 \begin{figure}
 	\centering
 	\includegraphics[trim=5.2cm 0.5cm 5cm 0.5cm, clip=true, width=1.0\textwidth]{images/EMG-results_participant_1_series1-6.png}
