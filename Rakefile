@@ -7,7 +7,7 @@ DOCUMENTATION = FileList['*/**/*.tex']
 #LATEXMK_OPTIONS = '-gg -d -cd -pdf -halt-on-error'
 LATEXMK_OPTIONS = "-cd -pdf -gg -deps"
 
-CLEAN << FileList['doc/*.{aux,log,out}']
+CLEAN << FileList['doc/**/*.{aux,log,out,fls,fdb_latexmk}']
 CLEAN << DATASET
 
 desc "Grep out the TODO's"
