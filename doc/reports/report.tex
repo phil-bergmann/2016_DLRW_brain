@@ -225,7 +225,7 @@ However, the structure of the predictions does not change and still fits similar
 \subsection{Results using EEG-data}
 The same network was used to predict the labels solely based on the 32 channel EEG data. Only the number of hidden units was increased to 200 to account for the the higher dimension of the input data and probable more complex structure of the EEG data compared to the EMG data.
 
-Figure \ref{fig:eeg_RNN_1} shows the RNN trained on one person with the move hand to target label only, as it's performance was good on previous experiments. It can be seen that the RNN is capable to find a structure in the EEG data to predict the labels correctly. It almost always shows a reaction on the right time, but the outputs don't have the right shape anymore and thus prediction of the timespan of the event is not possible. On the other side the RNN now is prone to false responses and reacts more often than it should. It seems that on a few test samples the performance is especially poor, as it's output is quite high on the whole trial and correct prediction of the event becomes infeasible. When trained on more than one person the performance of the RNN decreases. It still can be seen that it reacts on the right times of the events but the output becomes very noisy.
+Figure \ref{fig:eeg_RNN_1} shows the RNN trained on one person with the move hand to target label only, as its performance was good on previous experiments. It can be seen that the RNN is capable to find a structure in the EEG data to predict the labels correctly. It almost always shows a reaction on the right time, but the outputs do not have the right shape anymore and thus prediction of the timespan of the event is not possible. On the other side the RNN now is prone to false responses and reacts more often than it should. It seems that on a few test samples the performance is especially poor, as its output is quite high on the whole trial and correct prediction of the event becomes infeasible. When trained on more than one person the performance of the RNN decreases. It still can be seen that it reacts on the right times of the events but the output becomes very noisy.
 
 On Figure \ref{fig:eeg_RNN_2} the RNN was trained with all 5 targets. Like before with the EMG data the lift-object phase and the replace object phase could not be predicted very well. The other 3 targets are also very noisy, but one can see that the RNN is able to find a structure in the data to predict these labels.
 
@@ -244,21 +244,21 @@ On Figure \ref{fig:eeg_RNN_2} the RNN was trained with all 5 targets. Like befor
 \end{figure}
 
 \section{Summary}
-Using tSNE it was shown that EEG measurements from the same trial form clusters in the stochastic neighbourhood embedding.
+Using t-SNE it was shown that EEG measurements from the same trial form clusters in the stochastic neighbourhood embedding.
 A Feed-Forward-Artificial-Neural-Network was used to classify single trials from the EEG data and on this task an error rate of under 2\% was archive.
 The contribution of this work to the analysis of the WAY-EEG-GAL dataset it the proof that there is not-sequential order in the dataset present.
 The provided plots and experiments yield the assumption that this structuring is based on the time of measurement, since measurements from the same trial cluster together.
 To find the discrete cause for this clustering further research is necessary.
 
-Further this work showers that the WAY-EEG-GAL dataset can be used to learn a classifier for a stream of sequential EEG/EMG data to distinguish phases in grasp-and-lift motions.
+Further this work shows that the WAY-EEG-GAL dataset can be used to learn a classifier for a stream of sequential EEG/EMG data to distinguish phases in grasp-and-lift motions.
 By using a Recurrent Artificial Neural Network for the EMG data the classifier were able to distinguish 5 different phases for each trial,
 while for the EEG data it only detected the hand movement to the object.
 This work therefore proofs the concept of detecting intention of movement from EEG/EMG data by using a Recurrent Artificial Neural Network based classifier.
 Nevertheless, this concept faces some downfalls.
 
 Target phases with a long duration where easily detectable by this approach, while short phases remained mostly undetected.
-Since Recurrent Neural Networks threat data input as a sequential stream of signals, short \textit{spikes} may not be recognised as significant.
-It's likely that the Network threats those short signals similar to random noise.
+Since Recurrent Neural Networks treat data input as a sequential stream of signals, short \textit{spikes} may not be recognised as significant.
+It is likely that the Network threats those short signals similar to random noise.
 Therefore the certainty level of the corresponding output class does not grow over an recognisable threshold. 
 A better design of the targets used for training the model or modifications to the model itself, which take this consideration into account, may overcome this problem.
 
@@ -267,7 +267,7 @@ It is not possible to detect the exact phases were a participant develops the in
 The design used is only an approximation based on external events and stimuli which signal the participant to apply movement.
 For the EMG Data this approach works fine, since discrete muscle contractions are measured and a clear correlation between those contractions and the applied movement can be found.
 Regarding EEG data it is possible that the model did not use the signals, corresponding to the development of movement, but those which correspond to the processing of stimuli which are associated with the phase of the experiment.
-In that case the EEG classifier could only be applied in the same scenario, as it was practiced in the experiments \cite{nature}.
+In that case the EEG classifier could only be applied in the same scenario, as it was practised in the experiments \cite{nature}.
 To exclude this possibility, the model would have to be tested on the ability to transfer it's knowledge to a similar, but not identical domain.
 
 \begin{thebibliography}{9}
