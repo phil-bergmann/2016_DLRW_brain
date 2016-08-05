@@ -55,7 +55,9 @@ Philipp Bergmann \\
 \maketitle
 
 \begin{abstract}
-The \emph{WAY-EEG-GAL} dataset is designed to allow testing of techniques to decode sensation, intention and action from scalp EEG recordings in humans who perform a grasp-and-lift task. This paper demonstrates a methodology to analyse the data and how the problem of classifying various stages of these tasks by using a RNN on EEG and EMG data can be tackled. Particular findings in the EEG data and successes as well as pitfalls concerning the RNN runs are presented.
+The \emph{WAY-EEG-GAL} dataset is designed to allow testing of techniques to decode sensation, intention and action from scalp EEG recordings in humans who perform a grasp-and-lift task.
+This paper demonstrates a methodology to analyse the data and how the problem of classifying various stages of these tasks by using a RNN on EEG and EMG data can be tackled.
+Particular findings in the EEG data and successes as well as pitfalls concerning the RNN runs are presented.
 \end{abstract}
 
 \section{About the WAY-EEG-GAL dataset}\label{sec:data}
@@ -128,20 +130,25 @@ Thus, of whatever kind the structure within the EEG data distinguishing the tria
 As unexpected as these results may be, they do not neccessarily mean that the EEG dataset is entirely corrupted, as will be shown in the following sections. Furthermore, the clustering of LEDon and LEDoff-states respectively in figure \ref{fig:eeg_tsne} suggests that classification of \emph{grasping} and \emph{not grasping} should be possible through a Feedforward Neural Net, too. For participant 1, series 1 indeed a test error of $9.09\%$ was achieved.  
 
 \section{Methodology}
-The time-dependent experiment setting on the one hand and the results from the t-SNE in chapter \ref{sec:tsne} on the other hand, motivate to use a recurrent neural network (RNN). In comparison to a feed forward neural network, such a network contains recurrent connections within the hidden layer and thus saves a state between different inputs. By this way, the output does not only depend on the actual input but gets time-sensitive an is also influenced by previous inputs.
+The time-dependent experiment setting on the one hand and the results from the t-SNE in chapter \ref{sec:tsne} on the other hand, motivate to use a recurrent neural network (RNN).
+In comparison to a feed forward neural network, such a network contains recurrent connections within the hidden layer and thus saves a state between different inputs.
+By this way, the output does not only depend on the actual input but gets time-sensitive an is also influenced by previous inputs.
 
 \subsection{Recurrent Neural Network design}
 For implementation of a recurrent neural network Breze \cite{breze} is used.
 Based on python \cite{python}, Theano \cite{theano} and Climin \cite{climin}, this library provides useful functionality to implement and train neural networks.
-The implemented network consists of one hidden layer with tanh activated neurons and sigmoidal output neurons.
+The implemented network consists of one hidden layer with $\tanh$ activated neurons and sigmoidal output neurons.
 For the EMG data 100 inner neurons are used, for the EEG data 200.
 The weights are initialized by a random uniform distribution with expectation $0$ variance $0.1$.
-The network is trained in minibatches of size 50 with the optimizer Adadelta with $0.9$ memory decay, $0.9$ momentum, $1e-6$ offset and a step rate of $0.1$
-. Another optimizer that performs well in this constellation is RmsProp.
+The network is trained in minibatches of size 50 with the optimizer Adadelta with $0.9$ memory decay, $0.9$ momentum, $1e-6$ offset and a step rate of $0.1$.
+Another optimizer that performs well in this constellation is RmsProp.
 
-During the learning progress, the network performs an error back-propagation after $300$ data points are fed into the network. In combination with the subsampling rate, which will be discussed in the next chapter, this data slice size proved to be a good compromise between the depth of the network during the back-propagation and the period of time, the network can look in the past.
+During the learning progress, the network performs an error back-propagation after $300$ data points are fed into the network.
+In combination with the subsampling rate, which will be discussed in the next chapter, this data slice size proved to be a good compromise between the depth of the network during the back-propagation and the period of time, the network can look in the past.
 
-Furthermore 150 important weights are used. It means that the first half of the 300 samples of each back-propagation step are used to initialize the state of the RNN and do not contribute to the gradient as it takes some time until initial oscillations decay. Only the data points of the second half are then used to perform the error back-propagation and train the network.
+Furthermore 150 important weights are used.
+It means that the first half of the 300 samples of each back-propagation step are used to initialize the state of the RNN and do not contribute to the gradient as it takes some time until initial oscillations decay.
+Only the data points of the second half are then used to perform the error back-propagation and train the network.
 
 \subsection{Targets}
 The targets for the RNN are defined by specific time events given in the dataset. For the experiments of this paper, the following five targets are used:
@@ -152,11 +159,12 @@ The targets for the RNN are defined by specific time events given in the dataset
 	\item Replace object phase: Event "LED is switched off" until event "object is replaced back"
 	\item Move hand back to start phase: Event "Both fingers released the object" until event "Hand stopped to move"
 \end{enumerate}
-The targets for the RNN are represented by a one-hot-encoding scheme. Each target is represented by a separate target vector, stating for each time step if the target is active or not.
+The targets for the RNN are represented by a one-hot-encoding scheme.
+Each target is represented by a separate target vector, stating for each time step if the target is active or not.
 
 \section{Data preprocessing}
-The data we use in our experiments is provided by \cite{nature}.
-Those files are structured in series for each participant a windowed format of each trial series, described in \ref{sec:data}.
+The data we use in our experiments is provided by \cite{nature} as \textit{MATLAB} \textit{*.m}-format files.
+Those files are structured in series for each participant a windowed format of each trial series, described in~\ref{sec:data}.
 
 Based on these sources the neural network implementation can be configured to load various combinations of participants and series.
 Before the network starts to train, the data is preprocessed as described in the following.
@@ -205,7 +213,10 @@ A reasonable explanation for this behaviour could be, that the targets are to sm
 	\label{fig:emg_RNN_1}
 \end{figure}
 
-So far, all this observations are made on results of a RNN, which was trained with data of just one participant. Do demonstrate that predicting the targets with data of more than one participant works similarly fine, figure \ref{fig:emg_RNN_2} visualizes the results of a RNN trained with data of four different participants. Compared to figure \ref{fig:emg_RNN_1}, the RNN with data of more participants produces lower amplitudes. However, the structure of the predictions does not change and still fits similarly well to the target vectors.
+So far, all this observations are made on results of a RNN, which was trained with data of just one participant.
+Do demonstrate that predicting the targets with data of more than one participant works similarly fine, figure \ref{fig:emg_RNN_2} visualizes the results of a RNN trained with data of four different participants.
+Compared to figure \ref{fig:emg_RNN_1}, the RNN with data of more participants produces lower amplitudes.
+However, the structure of the predictions does not change and still fits similarly well to the target vectors.
 \begin{figure}
 	\centering
 	\includegraphics[trim=5.2cm 0.5cm 5cm 0.5cm, clip=true, width=1.0\textwidth]{images/EMG-results_participant_1-4_series1-2.png}
@@ -216,13 +227,18 @@ So far, all this observations are made on results of a RNN, which was trained wi
 \subsection{Results using EEG-data}
 
 \section{Summary}
-We showed that the WAY-EEG-GAL dataset can be used to learn a classifier for a stream of sequential EEG/EMG data to distinguish phases in grasp-and-lift motions.
-A classifier for only 5-channel EMG inputs and a classifier for 32-channel EEG inputs was trained.
+Using tSNE we were able to show that EEG measurements from the same trial create clusters in the stochastic neighbourhood embedding.
+%This clustering of data is time independent and proofs that indeed there is a not sequential order in the dataset present.
+A Feed-Forward-Artificial-Neural-Network was used to classify single trials from the EEG data and on this task an error rate of under 2\% was archive.
+Our contibution to the analysis of the WAY-EEG-GAL dataset it the proof that there is a time independent and not-sequential order in the dataset present.
+We assume that this structure is bounded to mesurements from the same trial.
+To finde the cause for this clustering further research is necessary.
+
+Further we showed that the WAY-EEG-GAL dataset can be used to learn a classifier for a stream of sequential EEG/EMG data to distinguish phases in grasp-and-lift motions.
 By using a Recurrent Artificial Neural Network we reached a classification error for upto 21\% on th EMG data and 30\% on the EEG data.
 For the EMG data we were able to distinguish 5 different phases for each trial, while for the EEG data we only detected the hand movement to the object.
-Using tSNE we were able to show that EEG measurements from the same trial create clusters in the stochastic neighbourhood embedding.
-This clustering of data is not-time dependent and proofs that indeed there is a not sequential order in the WAY-EEG-GAL dataset present.
-A Feed-Forward-Artificial-Neural-Network was used to classify single trials from the EEG data and on this task an error rate of under 2\% was archive.
+Target phases with a long duration where easily detectable by our approach, while short phases remained mostly undetected.
+We assume that a better encoding of the target vectors
 
 %TO BE CONTINUED
 
