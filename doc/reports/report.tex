@@ -214,7 +214,7 @@ A reasonable explanation for this behaviour could be, that the targets are to sm
 \end{figure}
 
 So far, all this observations are made on results of a RNN, which was trained with data of just one participant.
-Do demonstrate that predicting the targets with data of more than one participant works similarly fine, figure \ref{fig:emg_RNN_2} visualizes the results of a RNN trained with data of four different participants.
+To demonstrate that predicting the targets with data of more than one participant works similarly fine, figure \ref{fig:emg_RNN_2} visualizes the results of a RNN trained with data of four different participants.
 Compared to figure \ref{fig:emg_RNN_1}, the RNN with data of more participants produces lower amplitudes.
 However, the structure of the predictions does not change and still fits similarly well to the target vectors.
 \begin{figure}
@@ -225,6 +225,25 @@ However, the structure of the predictions does not change and still fits similar
 \end{figure}
 
 \subsection{Results using EEG-data}
+The same network was used to predict the labels solely based on the 32 channel EEG data. Only the number of hidden units was increased to 200 to account for the the higher dimension of the input data and probable more complex structure of the EEG data compared to the EMG data.
+
+\ref{fig:eeg_RNN_1} shows the RNN trained on one persons with the $move hand to target$ label only, as it's performance was good on previous experiments. It can be seen that the RNN is capable to find a structure in the EEG data to predict the labels correctly. It almost always shows a reaction on the right time, but the outputs don't have the right shape anymore and thus prediction of the timespan of the event is not possible. On the other side the RNN now is prone to false responses and reacts more often than it should. It seems that on a few test samples the performance is especially poor, as it's output is quite high on the whole trial and correct prediction of the event becomes infeasible. When trained on more than one person the performance of the RNN decreases. It still can be seen that it reacts on the right times of the events but the output becomes very noisy.
+
+On \ref{fig:eeg_RNN_2} the RNN was trained on all 5 targets. Like on the EMG data the lift-object phase and the replace object phase could not be predicted very well. The other 3 targets are also very noisy, but one can see that the is able to find a structure in the data to predict these labels.
+
+\begin{figure}
+	\centering
+	\includegraphics[trim=5.2cm 0.5cm 5cm 0.5cm, clip=true, width=1.0\textwidth]{images/EEG-results_participant_1_series_1-6_event_1.png}
+	\caption{Results of RNN trained with EEG data of participant 1, series 1-6}
+	\label{fig:eeg_RNN_1}
+\end{figure}
+
+\begin{figure}
+	\centering
+	\includegraphics[trim=5.2cm 0.5cm 5cm 0.5cm, clip=true, width=1.0\textwidth]{images/EEG-results_participant_1_series_1-6_event_1-5.png}
+	\caption{Results of RNN trained with EEG data of participant 1, series 1-6}
+	\label{fig:eeg_RNN_2}
+\end{figure}
 
 \section{Summary}
 Using tSNE we were able to show that EEG measurements from the same trial create clusters in the stochastic neighbourhood embedding.
