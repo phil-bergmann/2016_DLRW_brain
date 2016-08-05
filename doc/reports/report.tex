@@ -90,7 +90,7 @@ The resulting dataset groups the trials of each participant in nine series. For 
 \label{sec:tsne}
 In order to gain insight in how the EEG as well as EMG datasets are inherently structured, they were meant to be visualized. How the notion of \emph{grasping an object} is captured in the data was of particular interest. That is, does an individual measurement by itself carry enough information allowing to conclude that the participant is right now grasping an object or not? Or is this notion rather encapsulated within a series of measurements, with datapoints that change over time?
 
-\subsection{Choosing Banes Hut t-SNE as a visualization tool}
+\subsection{Choosing Barnes Hut t-SNE as a visualization tool}
 As the individual datapoints are high-dimensional ($\mathcal{D}_{EEG} \in \mathbb{N}^{32}$ and $\mathcal{D}_{EMG} \in \mathbb{R}^5$ respectively), a particularly suitable method of visualization seemes t-distributed stochastic neighbourhood embedding (t-SNE), which allows to represent such data as a two-dimensional mapping by grouping similar state vectors close together and separating them from less similar ones. For the upcoming analysis an efficient Barnes Hut t-SNE implementation, created by L.J.P. van der Maaten \cite{tsne}, was used which allows the creation of plots with a vast number of data points, as it is the case for the EEG as well as the EMG data.
 
 \subsection{Reasoning with t-SNE}
