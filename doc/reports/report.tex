@@ -157,7 +157,7 @@ The data used in our experiments of this paper is provided by \cite{nature} in \
 In the first step all input data of the same type (e.g. EEG, EMG) is scaled and normalized to zero mean. Single data point records have to be mapped to points in time, as those are provided separately.
 
 \subsection{Subsampling}
-Muscle activity from the five EMG sensors are obtained at 4kHz sampling rate. As obvious by visual inspection of raw signals, significant changes are following more sluggish behaviour. Thus, subsampling the raw data allows to speed up learning by reducing the amount of data, without significant loss of information. The simplest method considered without any interpolation just skips records of odd indices. In experiments of this paper, the data is subsampled by this way with factor 10.
+Muscle activity from the five EMG sensors are obtained at 4kHz sampling rate. As obvious by visual inspection of raw signals, significant changes are following more sluggish behaviour. Thus, subsampling the raw data allows to speed up learning by reducing the amount of data and without loosing relevant information for the result. The simplest implementation is create a subset of records by a regular frequency without interpolation. In experiments of this paper, the data is by this way with 10Hz.
 
 \subsection{Splitting and reshaping}
 After normalization and subsampling, the data is split up for cross validation into a set of size $80\%$ for training and two sets of size $10\%$ each for validation and testing.
