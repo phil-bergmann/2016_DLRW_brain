@@ -104,7 +104,7 @@ Having the above properties and settings in mind, one of these possible outcomes
 	\item All data points are distributed randomly and there is no apparent structure in the plot:
 	This would signal that if there is a way to extract information about the intention to grasp, then it is not sufficient to use Feedforward Nets only. Instead, one needs to at least incorporate time relations and thus consider Recurrent Neural Nets.
 \end{itemize}
-Figure \ref{fig:emg_tsne} shows the t-SNE plot for the $34$ trials of participant $1$, series $1$. Clearly, all data points are distributed randomly and no particular grouping is to be seen. Following the reasoning described above, we conclude that using a Feedforward Neural Net cannot suffice to extract the grasping notion out of the EMG data.
+Figure \ref{fig:emg_tsne} shows the t-SNE plot for the $34$ trials of participant $1$, series $1$. Clearly, all data points are distributed randomly and no particular grouping is to be seen. Following the reasoning described above, it can be concluded that using a Feedforward Neural Net cannot suffice to extract the grasping notion out of the EMG data.
 \begin{figure}
 	\centering
 	\begin{minipage}{0.5\textwidth}
@@ -186,12 +186,12 @@ Muscle activity from the five EMG sensors are obtained at 4kHz sampling rate. As
 \subsection{Splitting and reshaping}
 After normalization and subsampling, the data is split up for cross validation into a set of size $80\%$ for training and two sets of size $10\%$ each for validation and testing.
 
-In our neuronal network implementation, error back-propagation should be performed after 300 data samples.
+In the neuronal network implementation, error back-propagation should be performed after 300 data samples.
 To archive this, Breze requires the test and validation set to be provided as matrix in the shape $(300 \times \# \textnormal{back-propagations in one epoch} \times \# \textnormal{targets)}$.
 Thus, the train and validation set is cut to a multiple of 300 and then reshaped.
 
 \section{Results}
-All our RNNs are trained to predict the previously defined targets using EMG or EEG data.
+All RNNs are trained to predict the previously defined targets using EMG or EEG data.
 In this chapter, at first the results with EMG data and then the results using only EEG data are presented.
 \subsection{Results using EMG-data}
 Figure \ref{fig:emg_RNN_1} shows the results of a RNN trained with six data series of particpant 1.
