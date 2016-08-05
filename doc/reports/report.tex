@@ -177,8 +177,7 @@ Based on these sources the neural network implementation can be configured to lo
 Before the network starts to train, the data is preprocessed as described in the following.
 
 \subsection{Normalization}
-In the first step all input data of the same type (e.g. EEG, EMG) is scaled and normalized to zero mean.
-Single data point records have to be mapped to points in time, as those are provided separately.
+In the first step the absolute values of the input data are calculated. Then they are normalized to zero mean and scaled to fit into the interval $\left[-1,1\right]$.
 
 \subsection{Subsampling}
 Muscle activity from the five EMG sensors are obtained at 4kHz sampling rate. As obvious by visual inspection of raw signals, significant changes are following more sluggish behaviour. Thus, subsampling the raw data allows to speed up learning by reducing the amount of data and without loosing relevant information for the result. The simplest implementation is create a subset of records by a regular frequency without interpolation. In experiments of this paper, the data is by this way with 10Hz.
@@ -194,7 +193,7 @@ Thus, the train and validation set is cut to a multiple of 300 and then reshaped
 All RNNs are trained to predict the previously defined targets using EMG or EEG data.
 In this chapter, at first the results with EMG data and then the results using only EEG data are presented.
 \subsection{Results using EMG-data}
-Figure \ref{fig:emg_RNN_1} shows the results of a RNN trained with six data series of particpant 1.
+Figure \ref{fig:emg_RNN_1} shows the results of a RNN trained with six data series of participant 1.
 In the first two plots the expected target vectors and the prediction of the RNN are compared.
 The third plot illustrates the train, validation and test error during the training epochs.
 
@@ -225,7 +224,7 @@ However, the structure of the predictions does not change and still fits similar
 \subsection{Results using EEG-data}
 The same network was used to predict the labels solely based on the 32 channel EEG data. Only the number of hidden units was increased to 200 to account for the the higher dimension of the input data and probable more complex structure of the EEG data compared to the EMG data.
 
-Figure \ref{fig:eeg_RNN_1} shows the RNN trained on one person with the move hand to target label only, as its performance was good on previous experiments. It can be seen that the RNN is capable to find a structure in the EEG data to predict the labels correctly. It almost always shows a reaction on the right time, but the outputs do not have the right shape anymore and thus prediction of the timespan of the event is not possible. On the other side the RNN now is prone to false responses and reacts more often than it should. It seems that on a few test samples the performance is especially poor, as its output is quite high on the whole trial and correct prediction of the event becomes infeasible. When trained on more than one person the performance of the RNN decreases. It still can be seen that it reacts on the right times of the events but the output becomes very noisy.
+Figure \ref{fig:eeg_RNN_1} shows the RNN trained on one person with the move hand to target label only, as its performance was good on previous experiments. It can be seen that the RNN is capable to find a structure in the EEG data to predict the labels correctly. It almost always shows a reaction on the right time, but the outputs do not have the right shape any more and thus prediction of the timespan of the event is not possible. On the other side the RNN now is prone to false responses and reacts more often than it should. It seems that on a few test samples the performance is especially poor, as its output is quite high on the whole trial and correct prediction of the event becomes infeasible. When trained on more than one person the performance of the RNN decreases. It still can be seen that it reacts on the right times of the events but the output becomes very noisy.
 
 On Figure \ref{fig:eeg_RNN_2} the RNN was trained with all 5 targets. Like before with the EMG data the lift-object phase and the replace object phase could not be predicted very well. The other 3 targets are also very noisy, but one can see that the RNN is able to find a structure in the data to predict these labels.
 
