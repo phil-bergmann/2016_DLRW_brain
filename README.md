@@ -1,6 +1,8 @@
 # 2016-DLRW-brain
 The Braintrust
 
+Report in doc/reports/report.pdf and presentation in doc/presentation/main.pdf!
+
 #### EEG-EMG RNN training ####
 * Run brain/\_\_main\_\_.py to configure and execute training on EMG and EEG data. 
 * breze_RNN.py EMG training implementation
